@@ -27,7 +27,7 @@
     </dependencies>
 
     <build>
-        <finalName>imageuploader</finalName>
+        <finalName>modell-trainer</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

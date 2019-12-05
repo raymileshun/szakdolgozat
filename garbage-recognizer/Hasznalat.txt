@@ -1,0 +1,8 @@
+Node version 10.16.3 ajánlott
+
+a mappában npm install  parancsot kell adni, majd ha ez kész, akkor a node classifier.js parancsot kell megadni.
+
+Elindul a programunk és kis idő múlva betöltődik a MobileNet modell. Ekkor már ha van saját modellunk, akkor be tudjuk
+tölteni a localhost:8090/loadModel url-en, vagy a modell-trainert használva elkezdhetjük tanítani újból.
+Fontos, hogy tanítás után a modellt le is kell mentenünk, ezért a localhost:8090/saveModel oldalra kell elnavigálnunk,
+hogy lementse a json filet

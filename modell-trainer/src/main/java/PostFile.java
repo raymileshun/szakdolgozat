@@ -48,15 +48,11 @@ public class PostFile {
                     "properties.txt"));
  
         JSONObject jsonObject = (JSONObject) obj;
- 
-       System.out.println(jsonObject.get("classLimit"));
-       System.out.println((String) jsonObject.get("garbageFolderPath"));
-       System.out.println((String) jsonObject.get("imagenetFolderPath"));
         
 		
-		CLASSLIMIT=Integer.parseInt(args[0]);
-		String garbageFolderLocation = args[1];
-		String imageNetFolderLocation= args[2];
+		CLASSLIMIT=((Long) jsonObject.get("classLimit")).intValue();
+		String garbageFolderLocation = (String) jsonObject.get("garbageFolderPath");
+		String imageNetFolderLocation= (String) jsonObject.get("imagenetFolderPath");
 		
         File garbageFolder = new File(garbageFolderLocation);
         File imageNetFolder = new File(imageNetFolderLocation);
