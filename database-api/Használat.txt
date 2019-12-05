@@ -1,0 +1,23 @@
+Buildeléshez navigáljunk ebbe a mappába parancssorból, majd adjuk meg az
+
+mvn clean install
+
+parancsot. A target mappában létrehozza a .jar-t, amit majd le kell futtatnunk.
+Fontos, hogy egy mappában legyen ez a .jar file és a database-parser által lementett
+CPU és GPU .txt fileok, mert ezekkel dolgozik majd az API.
+
+Ha ez megvan, akkor utána a 
+
+java -jar database-api.jar
+
+parancsot adjuk meg a parancssorban. El fog indulni az alkalmazás, majd amikor megjelenik, hogy
+Started CpuDatabaseApiApplication in  .. secs, akkor már tudjuk használni a programot.
+
+Ha elnavigálunk a localhost:8080/cpus oldalra, akkor látni fogjuk listában a cpukat, a /gpus-nál
+pedig a videókártyákat.
+
+cpus-nál még extra keresési paramétert is meg lehet adni, és így majd visszakapjuk az olyan szavakat tartalmazó CPU-kat
+
+pl.  localhost:8080/cpus/am
+
+Ilyenkor AMD-től kezdve csomó processzort kilistáz majd.

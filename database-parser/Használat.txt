@@ -1,0 +1,14 @@
+Ha nem egy fejlesztői környezetből akarjuk futtatni, akkor parancssorban ebbe a mappába navigálunk, majd egy
+
+mvn clean install
+
+paranccsal le tudjuk buildelni a programot.
+Ezután a target mappában létrehoz két jar filet, nekünk ebből a spring-bootos kell majd. A
+
+java -jar database-parser-spring-boot.jar
+
+parancsot megadva a program elkezdi leszedni a CPU és GPU adatbázist. Még semmilyen logolás nincsen benne, ezért
+ne lepődjünk meg, hogy eltűnik majd a prompt és olyan mintha befagyott volna az alkalmazás. Ez nem így van, mert ha várunk
+egy pár másodpercet akkor létrehozza majd a CPUs.txt és GPUs.txt fileokat a program.
+
+Ezeket majd később a databaseApinál használjuk.

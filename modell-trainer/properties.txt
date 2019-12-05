@@ -1,0 +1,5 @@
+{
+	"classLimit": 200,
+	"garbageFolderPath": "",
+	"imagenetFolderPath": ""
+}

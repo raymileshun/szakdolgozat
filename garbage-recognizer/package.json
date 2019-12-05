@@ -1,0 +1,21 @@
+{
+  "name": "garbage-recognizer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "classifier.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "rhorak",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow-models/knn-classifier": "0.1.0",
+    "@tensorflow-models/mobilenet": "^2.0.4",
+    "@tensorflow/tfjs": "1.2.11",
+    "@tensorflow/tfjs-core": "1.2.11",
+    "@tensorflow/tfjs-node": "1.2.11",
+    "canvas": "^2.6.0",
+    "express": "^4.17.1",
+    "formidable": "^1.2.1"
+  }
+}
