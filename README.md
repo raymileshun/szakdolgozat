@@ -1,8 +1,3 @@
-# TL;DR változat
-
-A komplett alkalmazások elérhetőek az alábbi linken, ahol már parancssorból is lehet futtatni őket: 
-
-
 # Tudnivalók
 
 Néhány program lefordításához szükség lesz Maven-re, illetve Nodera. Mavenből mindegy a verzió, Nodeból a v10.16.3-al sikerült működésre bírnom
