@@ -17,28 +17,25 @@ function setup() {
 }
 
 function draw() {
-  let fos=[];
+  let arrayOfPointsUsedForRatioCalculation=[];
   background(0);
   drawCoordinateLines();
   drawClassIds();
-  let closest=getKClosestIndexes();
+  let closestPointsArray=getKClosestIndexes();
   for(let i=0;i<pointsArray.length;i++){
-    if(closest.includes(i)){
+    if(closestPointsArray.includes(i)){
         strokeWeight(5)
         stroke('blue')
         line(mouseX,mouseY,pointsArray[i].x,pointsArray[i].y)
-        pointsArray[i].isClose=true;
-        fos.push(pointsArray[i]);
-    } else{
-      pointsArray[i].isClose=false
+        arrayOfPointsUsedForRatioCalculation.push(pointsArray[i]);
     }
     pointsArray[i].show();
 
     noStroke()
     fill(255,0,0)
-    text(parseInt(calculateDistance(pointsArray[i])),pointsArray[i].x,pointsArray[i].y)
+    text(parseInt(calculatePointDistanceFromMouse(pointsArray[i])),pointsArray[i].x,pointsArray[i].y)
   }
-  getPointsRatio(fos)
+  getPointsRatio(arrayOfPointsUsedForRatioCalculation)
 }
 
 function drawCoordinateLines(){
@@ -121,7 +118,7 @@ function getKClosestIndexes(){
   let distanceArray=[];
   let closestArray=[];
   for(let i=0;i<pointsArray.length;i++){
-    distanceArray.push([i,calculateDistance(pointsArray[i])])
+    distanceArray.push([i,calculatePointDistanceFromMouse(pointsArray[i])])
   }
 
   distanceArray.sort(function(a,b){
@@ -138,6 +135,6 @@ function getKClosestIndexes(){
 
 
 
-function calculateDistance(pnt){
+function calculatePointDistanceFromMouse(pnt){
   return dist(mouseX,mouseY,pnt.x,pnt.y)
 }

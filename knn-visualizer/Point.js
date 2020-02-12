@@ -6,16 +6,10 @@ function Point(){
   this.x=random(offset,width-offset);
   this.y=random(offset,height-offset);
   this.classId =getClassIdForCoordinates(this.x,this.y);
-  this.isClose=false;
 
 
   this.show= function(){
-    if(!this.isClose){
-      stroke(cols[this.classId]);
-    } else{
-      //stroke(closeColor);
-      stroke(cols[this.classId]);
-    }
+    stroke(cols[this.classId]);
 
     strokeWeight(10);
     point(this.x,this.y)
