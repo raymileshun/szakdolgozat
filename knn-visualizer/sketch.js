@@ -13,7 +13,6 @@ function setup() {
   x.setAttribute("id", "ratioTable")
   document.body.appendChild(x)
   document.getElementById("ratioTable").insertRow().insertCell(0);
-
 }
 
 function draw() {
