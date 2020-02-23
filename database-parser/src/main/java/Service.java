@@ -71,9 +71,9 @@ public class Service {
 
             }
 
-            hardware.put(hardwareName.toLowerCase() + "Id", hardwareId);
-            hardware.put(hardwareName.toLowerCase() + "Name", hardwareObjectName);
-            hardware.put(hardwareName.toLowerCase() + "Consumption", hardwareConsumption);
+            hardware.put("hardwareId", hardwareId);
+            hardware.put("hardwareName", hardwareObjectName);
+            hardware.put("hardwareConsumption", hardwareConsumption);
 
             hardwareList.add(hardware);
             // cpuList.add(new CPU(cpuId, cpuName, cpuConsumption));
@@ -88,7 +88,7 @@ public class Service {
         ArrayList unnecessearyHardwaresArray= new ArrayList();
         for (int i = 0; i < hardwareList.size(); ++i) {
             JSONObject hardware = (JSONObject) hardwareList.get(i);
-            String consumption = (String) hardware.get(hardwareName.toLowerCase()+"Consumption");
+            String consumption = (String) hardware.get("hardwareConsumption");
             //System.out.println(consumption);
             try {
                 if (consumption.equals("NA") || consumption.equals("") || consumption == null || consumption.equals("null")) {
