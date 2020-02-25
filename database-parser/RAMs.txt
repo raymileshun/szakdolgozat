@@ -1,0 +1,1 @@
+[{"hardwareConsumption":10,"hardwareName":"DDR1","hardwareId":1},{"hardwareConsumption":7,"hardwareName":"DDR2","hardwareId":2},{"hardwareConsumption":5,"hardwareName":"DDR3","hardwareId":3},{"hardwareConsumption":3,"hardwareName":"DDR4","hardwareId":4}]

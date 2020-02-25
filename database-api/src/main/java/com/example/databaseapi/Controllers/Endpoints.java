@@ -31,6 +31,21 @@ public class Endpoints {
         return service.parseFile("gpu");
     }
 
+    @GetMapping("/watercoolers")
+    Object waterCoolerEndpoint() throws IOException, ParseException {
+        return service.parseFile("watercooler");
+    }
+
+    @GetMapping("/rams")
+    Object ramEndpoint() throws IOException, ParseException {
+        return service.parseFile("ram");
+    }
+
+    @GetMapping("/discwriters")
+    Object discwriterEndpoint() throws IOException, ParseException {
+        return service.parseFile("discwriter");
+    }
+
     @GetMapping(value = "/cpus/{cpuName}")
     public @ResponseBody
     JSONArray filteredCpuListEndpoint(@PathVariable String cpuName) throws IOException, ParseException {
