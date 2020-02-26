@@ -1,0 +1,16 @@
+Node-nak a 10.16.3-as verziója ajánlott! 
+
+
+Előfordulhat, hogy nem működik majd rögtön az npm install után a képfelismerő.
+Alábbi dolgokat érdemes elvégezni majd:
+
+	npm install --global node-gyp@latest
+
+Letölteni a build tools windowshoz:
+	https://go.microsoft.com/fwlink/?LinkId=691126
+
+Van hogy ilyen return process.dlopen() szerű hibákkal száll el az egyik modul. (nekem pl. a tfjs-node -nál írt ki ilyen hibát)
+Ekkor rebuildelni érdemes azt a modult:
+pl. 
+
+	npm rebuild @tensorflow/tfjs-node --build-from-source
