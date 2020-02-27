@@ -1,1 +1,0 @@
-[{"hardwareConsumption":20,"hardwareName":"CD-ROM \/ CD-RW","hardwareId":1},{"hardwareConsumption":25,"hardwareName":"DVD-ROM \/ DVD-RW \/ DVD+RW","hardwareId":2},{"hardwareConsumption":30,"hardwareName":"DVD \/ CD-RW Kombó","hardwareId":3},{"hardwareConsumption":25,"hardwareName":"Blu-Ray","hardwareId":4}]

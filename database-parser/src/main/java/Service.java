@@ -215,7 +215,7 @@ public class Service {
 
         discWriter = new JSONObject();
         discWriter.put("hardwareId", 3);
-        discWriter.put("hardwareName", "DVD / CD-RW Kombó");
+        discWriter.put("hardwareName", "DVD / CD-RW Kombo");
         discWriter.put("hardwareConsumption", 30);
         discWriterJsonlist.add(discWriter);
 
