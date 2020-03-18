@@ -2,6 +2,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.jsoup.Jsoup;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,6 +13,9 @@ public class Service {
 
     String cpuListUrl = "https://www.cpubenchmark.net/CPU_mega_page.html";
     String gpuListUrl = "https://www.videocardbenchmark.net/GPU_mega_page.html";
+
+    String databaseDirectoryName= "jsons";
+    String imageDirectoryName = "garbage-pictures";
 
     public String getHtml(String pageUrl) {
         String html = null;
@@ -108,7 +112,7 @@ public class Service {
 
     public void saveHardwareList(JSONArray hardwareList, String hardwareName) throws IOException {
 
-        try (FileWriter file = new FileWriter(hardwareName.toUpperCase() + "s.txt")) {
+        try (FileWriter file = new FileWriter(databaseDirectoryName+"/"+hardwareName.toUpperCase() + "s.txt")) {
             file.write(hardwareList.toJSONString());
             //System.out.println(hardwareName.toUpperCase() + " List:\n " + hardwareList);
         }
@@ -116,6 +120,8 @@ public class Service {
     }
 
     public void downloadHardwareLists() throws IOException {
+        new File(databaseDirectoryName).mkdir();
+        new File(imageDirectoryName).mkdir();
         parseHtml("cpu");
         parseHtml("gpu");
 
@@ -230,6 +236,14 @@ public class Service {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        JSONArray garbageMarkersJsonlist = new JSONArray();
+        try {
+            saveHardwareList(garbageMarkersJsonlist,"garbagemarker");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
     }
 

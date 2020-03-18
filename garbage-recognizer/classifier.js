@@ -132,8 +132,8 @@ app.post('/submitOwnImage', (req, res) => {
       const activation = mobilenetModel.infer(tf.browser.fromPixels(canvas), 'conv_preds');
 
       trainingResponse=await classifier.predictClass(activation)
-      let response= await printResponse(trainingResponse)
-      res.send(response)
+      let response= await printResponse(trainingResponse,path)
+      res.send(JSON.stringify(response))
       //console.log(trainingResponse);
 
       // res.status(200).send(predictions[0].probability>CONFIDENCE? true : false);
@@ -217,7 +217,7 @@ app.get('/loadModel', async function(req, res){
 });
 
 
-const printResponse = async function(trainingResponse) {
+const printResponse = async function(trainingResponse,path) {
     let confidences= trainingResponse.confidences
     let sortableArray=[];
     let filteredArray=[];
@@ -250,7 +250,8 @@ const printResponse = async function(trainingResponse) {
 
     response={
       "confidences":filteredArray,
-      "isItGarbage":status
+      "isItGarbage":status,
+	  "imagePath": path
     }
 
    console.log(filteredArray);
