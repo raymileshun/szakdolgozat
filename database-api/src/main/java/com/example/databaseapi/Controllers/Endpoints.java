@@ -1,5 +1,7 @@
 package com.example.databaseapi.Controllers;
 
+import com.example.databaseapi.Challenge.Challenge;
+import com.example.databaseapi.Challenge.DailyChallenges;
 import com.example.databaseapi.Service.Service;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
@@ -56,6 +58,11 @@ public class Endpoints {
         return service.parseFile("garbagemarker");
     }
 
+    @GetMapping("/consoles")
+    Object gamingConsolesEndpoint() throws IOException, ParseException {
+        return service.parseFile("console");
+    }
+
     @GetMapping(value = "/cpus/{cpuName}")
     public @ResponseBody
     JSONArray filteredCpuListEndpoint(@PathVariable String cpuName) throws IOException, ParseException {
@@ -99,5 +106,34 @@ public class Endpoints {
     public Object updateMarker(@PathVariable String id) throws IOException, ParseException {
         return service.updateMarker(id);
     }
+
+    @RequestMapping(value = "/getChallengeResponse", method = RequestMethod.POST)
+    public Object getChallengeResponse(@RequestBody JSONObject states) throws IOException, ParseException {
+        return service.getDailyChallengeResponse(states);
+    }
+
+    @GetMapping("/challenges")
+    Object challengesEndpoint() throws IOException, ParseException {
+        return service.parseFile("challenge");
+    }
+
+    @GetMapping(value = "/challenges/{challengeId}")
+    public @ResponseBody
+    JSONObject filteredCpuListEndpoint(@PathVariable int challengeId) throws IOException, ParseException {
+        return service.getChallengeById(challengeId);
+    }
+
+    //itt még lehetnek paraméterek, hogy ne beégetve adja hozzá a challenget
+    @GetMapping("/saveChallenge")
+    void setDailyChallengesEndpoint() throws IOException, ParseException {
+        service.addChallenge(new Challenge(0,"Szedj fel egy szemetet",false));
+    }
+
+    @GetMapping("/foodpollutions")
+    Object foodPollutionssEndpoint() throws IOException, ParseException {
+        return service.parseFile("foodpollution");
+    }
+
+
 
 }

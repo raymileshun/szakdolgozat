@@ -1,5 +1,7 @@
 package com.example.databaseapi.Service;
 
+import com.example.databaseapi.Challenge.Challenge;
+import com.example.databaseapi.Challenge.DailyChallenges;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -9,12 +11,14 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.ArrayList;
 
 public class Service {
 
     JSONParser parser = new JSONParser();
     String directoryName = "jsons/";
     String garbageMarkerSavingLocation=directoryName+"GARBAGEMARKERs.txt";
+    String challengesSavingLocation=directoryName+"CHALLENGEs.txt";
 
     public Object parseFile(String hardwareName) throws IOException, ParseException {
         return parser.parse(new FileReader(directoryName+hardwareName.toUpperCase()+"s.txt"));
@@ -50,7 +54,6 @@ public class Service {
 
 //    public Object saveMarker(String id, String latitude, String longitude) throws IOException {
       public Object saveMarker(String latitude, String longitude, String imagePath) throws IOException, ParseException {
-
 
         boolean fileExists=true;
         JSONArray json = new JSONArray();
@@ -135,6 +138,113 @@ public class Service {
         response.put("statusCode",200);
         response.put("message","A frissítés megtörtént!");
         return response;
+    }
+
+
+
+    public void addChallenge(Challenge challenge) throws IOException {
+        boolean fileExists=true;
+        JSONArray json = new JSONArray();
+        JSONArray array = new JSONArray();
+        try {
+            json = (JSONArray) parser.parse(new FileReader(challengesSavingLocation));
+        }catch (IOException | ParseException e){
+            fileExists=false;
+        }
+
+
+        if(fileExists){
+            array=json;
+        }
+        array.add(challenge.convertChallengeToJsonObject());
+
+        try (FileWriter file = new FileWriter(challengesSavingLocation)) {
+            file.write(array.toJSONString());
+        }
+    }
+
+    public void updateChallenge(int id) throws IOException {
+        JSONArray challengesArray = new JSONArray();
+        try {
+            challengesArray = (JSONArray) parser.parse(new FileReader(challengesSavingLocation));
+        }catch (IOException | ParseException e){
+                //hibakezelés hogy nem lehet megnyitni a filet, mert nem létezik
+        }
+        ArrayList<Challenge> challenges = serializeJsonToChallengeObject(challengesArray);
+        int index=-1;
+        for (Challenge challenge:challenges){
+            if(challenge.getChallengeId()==id){
+                index=challenge.getChallengeId();
+                challenge.setItCompleted(true);
+                break;
+            }
+        }
+
+        if(index!=-1){
+            challengesArray.remove(index);
+            challengesArray.add(index,challenges.get(index).convertChallengeToJsonObject());
+        }
+        try (FileWriter file = new FileWriter(challengesSavingLocation)) {
+            file.write(challengesArray.toJSONString());
+        }
+    }
+
+
+    public JSONObject getChallengeById(int challengeId){
+        JSONArray challengesList = null;
+        try {
+            challengesList = (JSONArray) parseFile("challenge");
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+        ArrayList<Challenge> challenges = serializeJsonToChallengeObject(challengesList);
+
+        for(Challenge challenge : challenges){
+            if(challenge.getChallengeId()==challengeId){
+                return challenge.convertChallengeToJsonObject();
+            }
+        }
+
+        return new JSONObject();
+    }
+
+    //Én komolyan nem értem hogy a simpleJsonnel miért nem lehet kiszedni az objektumokat normálisan, és akkor nem kellene mindenféle
+    //String manipulációt csinálni
+    public Object getDailyChallengeResponse(JSONObject states) throws IOException, ParseException {
+        Object currentState = states.get("currentState");
+        Object previousState= states.get("previousState");
+        JSONObject response = new JSONObject();
+
+        JSONArray challengesJson = (JSONArray) parseFile("challenge");
+        ArrayList<Challenge> challenges = serializeJsonToChallengeObject(challengesJson);
+        for (Challenge challenge: challenges){
+            if(challenge.isDailyChallengeCompletedForId(currentState,previousState)) {
+                response.put("statusCode", 200);
+                response.put("challengeId", challenge.getChallengeId());
+                updateChallenge(challenge.getChallengeId());
+                return response;
+            }
+        }
+
+        response.put("statusCode",400);
+        return response;
+    }
+
+    public ArrayList<Challenge> serializeJsonToChallengeObject(JSONArray jsonArray){
+        ArrayList<Challenge> challengesList = new ArrayList<>();
+        Challenge challenge;
+
+        for(int i=0;i<jsonArray.size();i++){
+            JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+            int challengeId = Integer.parseInt(String.valueOf(jsonObject.get("challengeId")));
+            String challengeDescription= String.valueOf(jsonObject.get("challengeDescription"));
+            boolean isItCompleted = jsonObject.get("isItCompleted").toString().equals("true")?true:false;
+
+            challengesList.add(new Challenge(challengeId,challengeDescription,isItCompleted));
+
+        }
+
+        return challengesList;
     }
 }
 

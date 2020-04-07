@@ -1,1 +1,1 @@
-[{"latitude":"48.083235","id":0,"isItCollected":"true","longitude":"20.7785"},{"latitude":"48.082235","id":1,"isItCollected":"true","longitude":"20.7785"}]
+[{"latitude":"48.083235","id":0,"isItCollected":"true","longitude":"20.7785"},{"latitude":"48.082235","id":1,"isItCollected":"false","longitude":"20.7785"}]
