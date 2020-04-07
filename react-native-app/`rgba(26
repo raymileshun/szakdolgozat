@@ -1,0 +1,29 @@
+A konzolablak alap‚rtelmezett el‹t‚r- ‚s h tt‚rsz¡n‚nek a be ll¡t sa
+
+COLOR [attr]
+
+  attr        Megadja a konzol sz¡nattrib£tum t.
+
+A sz¡nattrib£tumot KT hexadecim lis sz m hat rozza meg: az els‹
+a h tt‚rre, m¡g a m sodik az el‹t‚rre vonatkozik.  Mindegyik sz m
+a k”vetkez‹ ‚rt‚kek valamelyike lehet:
+
+    0 = Fekete       8 = Szrke
+    1 = K‚k          9 = Vil gosk‚k
+    2 = Z”ld         A = Vil gosz”ld
+    3 = gsz¡nk‚k    B = Vil gos ‚gsz¡nk‚k
+    4 = V”r”s        C = Vil gosv”r”s
+    5 = B¡bor        D = Vil gosb¡bor
+    6 = S rga        E = Vil goss rga
+    7 = Feh‚r        F = F‚nyes feh‚r
+
+Ha nincs megadva argumentum, ez a parancs a sz¡nt a CMD.EXE ind¡t sakor
+‚rv‚nyes ‚rt‚kre  ll¡tja vissza. Ez az aktu lis konzolablakb¢l, a /T pa-
+rancssorkapcsol¢b¢l, vagy a DefaultColor be ll¡t sazonos¡t¢b¢l
+sz rmazik.
+
+A COLOR parancs az ERRORLEVEL ‚rt‚k‚t 1-re  ll¡tja be, ha a COLOR
+parancs megk¡s‚rli az el‹t‚rsz¡nt a h tt‚rsz¡nnel azonos ‚rt‚kûre
+ ll¡tani.
+
+P‚lda: A "COLOR fc" f‚nyes feh‚r alapon vil gosv”r”set eredm‚nyez.
