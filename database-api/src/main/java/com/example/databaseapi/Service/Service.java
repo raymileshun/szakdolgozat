@@ -11,7 +11,11 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Service {
 
@@ -65,13 +69,18 @@ public class Service {
         }
         int markerId = json.size();
 
-        JSONObject marker = new JSONObject();
+          Date date = Calendar.getInstance().getTime();
+          DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+          String strDate = dateFormat.format(date);
+
+          JSONObject marker = new JSONObject();
         marker.put("id",markerId);
         marker.put("latitude",latitude);
         marker.put("longitude",longitude);
 //          marker.put("latitude",48.083235);
 //          marker.put("longitude",20.7785);
         marker.put("isItCollected","false");
+        marker.put("uploadDate",strDate);
 
         if(fileExists){
             array=json;
@@ -218,7 +227,7 @@ public class Service {
         JSONArray challengesJson = (JSONArray) parseFile("challenge");
         ArrayList<Challenge> challenges = serializeJsonToChallengeObject(challengesJson);
         for (Challenge challenge: challenges){
-            if(challenge.isDailyChallengeCompletedForId(currentState,previousState)) {
+            if(challenge.isDailyChallengeCompletedForId(currentState,previousState) && !challenge.isItCompleted()) {
                 response.put("statusCode", 200);
                 response.put("challengeId", challenge.getChallengeId());
                 updateChallenge(challenge.getChallengeId());

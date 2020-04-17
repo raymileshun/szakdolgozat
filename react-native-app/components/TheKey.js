@@ -65,7 +65,8 @@ class TheKey extends Component {
                 presonsClothesBuyingHabit: ["hetente", "havonta"],
 
                 //ezer kilométerben
-                yearlyDistanceTravelledWithCar: 25,
+                // yearlyDistanceTravelledWithCar: 25,
+                yearlyDistanceTravelledWithCar: 12,
 
                 //maximum értékek
                 tvHoursWatched: 5,
@@ -108,6 +109,7 @@ class TheKey extends Component {
                 Coffee: false,
                 Chocolate: false,
                 WeeklyTotalMeatConsumpion: false,
+                OtherMeatConsumption: false,
                 Beef: false,
                 Lamb: false,
                 PorkGeneral: false,
@@ -324,6 +326,9 @@ class TheKey extends Component {
             case "TOTALMEATCONSUMPTION":
                 data.WeeklyTotalMeatConsumpion = true
                 break;
+            case "OTHERMEAT_CONSUMPTION":
+                data.OtherMeatConsumption = true
+                break;
             case "BEEF":
                 data.Beef = true
                 break;
@@ -483,44 +488,48 @@ class TheKey extends Component {
                 case "TOTALMEATCONSUMPTION":
                     let totalWeeklyMeatConsumption = parseFloat(this.props.personalConsumptionData.foodConsumptions.Beef) + parseFloat(this.props.personalConsumptionData.foodConsumptions.Lamb)
                         + parseFloat(this.props.personalConsumptionData.foodConsumptions.Chicken) + parseFloat(this.props.personalConsumptionData.foodConsumptions.Pork)
-                    tippText = <Text>Hetente {this.renderTippHighlitedText(totalWeeklyMeatConsumption - this.state.thresholds.weeklyTotalMeatConsumption, 'kg')}-al kevesebb húsfogyasztás lenne az optimális</Text>
+                    tippText = <Text style={styles.generalTippText}>Hetente {this.renderTippHighlitedText(totalWeeklyMeatConsumption - this.state.thresholds.weeklyTotalMeatConsumption, 'kg')}-al kevesebb húsfogyasztás lenne az optimális</Text>
                     break;
                 case "PORK_OVERCONSUMPTION":
-                    tippText = <Text>Heti {this.renderTippHighlitedText(this.props.personalConsumptionData.foodConsumptions.Pork - this.state.thresholds.Pork, 'kg')}-al kevesebb sertésfogyasztás egészésgesebb lenne az Ön számára</Text>
+                    tippText = <Text style={styles.generalTippText}>Heti {this.renderTippHighlitedText(this.props.personalConsumptionData.foodConsumptions.Pork - this.state.thresholds.Pork, 'kg')}-al kevesebb sertésfogyasztás egészésgesebb lenne az Ön számára</Text>
+                    break;
+                //Ez a szöveg akkor jelenne meg, ha csirkén kívül más húst is fogyaszt az illető
+                case "OTHERMEAT_CONSUMPTION":
+                    tippText = <Text>* A megjelölt húsok helyett a csirkehús fogyasztása sokkal környezetkímélőbb. (Tizede a kibocsájtása a marháénak)</Text>
                     break;
                 case "BOTTLEDDRINKS":
                     //itt megemlíteni hogy a régi visszaválthatós üvegeket vissza lehetne hozni
                     let savedPlasticPollutionMass = (parseInt(this.props.personalConsumptionData.plasticConsumptions.BottledWater) + parseInt(this.props.personalConsumptionData.plasticConsumptions.BottledCola)) * 48 * this.state.plasticPollutions.BottledBeverage / 1000
-                    tippText = <Text>Ha teheti, inkább igyon papírdobozos gyümölcsleveket, ezzel pedig évente {this.renderTippHighlitedText(savedPlasticPollutionMass, 'kg')} műanyaggal kevesebbet szennyez</Text>
+                    tippText = <Text style={styles.generalTippText}>Ha teheti, inkább igyon papírdobozos gyümölcsleveket, ezzel pedig évente {this.renderTippHighlitedText(savedPlasticPollutionMass, 'kg')} műanyaggal kevesebbet szennyez</Text>
                     break;
                 case "FASTFOOD_GENERAL":
-                    tippText = <Text>Ha bármilyen poharas üdítőt vesz, akkor ne kérje el a szívószálat és a műanyag tetőt</Text>
+                    tippText = <Text style={styles.generalTippText}>Ha bármilyen poharas üdítőt vesz, akkor ne kérje el a szívószálat és a műanyag tetőt</Text>
                     break;
                 case "FASTFOOD_OVERCONSUMPTION":
-                    tippText = <Text>Ennyivel kevesebb havi gyorsétterem látogatás egészségesebb lenne az ön számára: {this.renderTippHighlitedText(this.props.personalConsumptionData.otherData.monthlyFastFoodVisitCount - this.state.thresholds.monthlyFastFoodVisit)}</Text>
+                    tippText = <Text style={styles.generalTippText}>Ennyivel kevesebb havi gyorsétterem látogatás egészségesebb lenne az ön számára: {this.renderTippHighlitedText(this.props.personalConsumptionData.otherData.monthlyFastFoodVisitCount - this.state.thresholds.monthlyFastFoodVisit)}</Text>
                     break;
                 case "HEATER_INFRA_GENERAL":
                     let savedHour = ((this.props.personalConsumptionData.otherData.heaterHoursUsedADay) * this.state.normalHeaterConsumption) - ((this.props.personalConsumptionData.otherData.heaterHoursUsedADay) * this.state.infraredHeaterConsumption)
                     let savedKwh = ((savedHour * this.props.personalConsumptionData.otherData.heaterDaysUsedAYear) / 1000)
                     let savedPollution = savedKwh * this.state.co2PollutionForOneKwhElectricity
-                    tippText = <Text>Ha normál fűtőtest helyett infrásat használ, akkor évente {this.renderTippHighlitedText(savedPollution, 'kg')} CO2-vel csökkenti a kibocsájtását és évi {this.renderTippHighlitedText(savedKwh, 'kwH')} energiát spórolhat meg ({this.renderTippHighlitedText(savedKwh * this.state.kwhElectricityPriceInHuf, 'Ft')})</Text>
+                    tippText = <Text style={styles.generalTippText}>Ha normál fűtőtest helyett infrásat használ, akkor évente {this.renderTippHighlitedText(savedPollution, 'kg')} CO2-vel csökkenti a kibocsájtását és évi {this.renderTippHighlitedText(savedKwh, 'kwH')} energiát spórolhat meg ({this.renderTippHighlitedText(savedKwh * this.state.kwhElectricityPriceInHuf, 'Ft')})</Text>
                     break;
                 case "CINEMA_FOOD":
                     //ha kaját vesz moziban akkor linkelek egy szívószálat, hogy ne műanyagot használjon
-                    tippText = <><Text>Moziban a kólához használhat újrahasznosítható szívószálat is és nem kell műanyaggal szennyezni</Text><TouchableOpacity onPress={() => Linking.openURL('https://www.csomagpostas.hu/haztartas/3-db-rozsdamentes-acelbol-keszult-szivoszal-ingyenes-szallitas/')}><Text>LINK</Text></TouchableOpacity></>
+                    tippText = <><Text style={styles.generalTippText}>Moziban a kólához használhat újrahasznosítható szívószálat is és nem kell műanyaggal szennyezni</Text><TouchableOpacity onPress={() => Linking.openURL('https://www.csomagpostas.hu/haztartas/3-db-rozsdamentes-acelbol-keszult-szivoszal-ingyenes-szallitas/')}><Text style={styles.linkText}>LINK</Text></TouchableOpacity></>
                     break;
                 case "DISTANCE_TRAVELLED":
                     let distanceSaved = (this.props.personalConsumptionData.otherData.yearlyDistanceTravelledWithCar - this.state.thresholds.yearlyDistanceTravelledWithCar)
-                    tippText = <Text>Ha évente {this.renderTippHighlitedText(distanceSaved, 'ezer km')}-el kevesebbet közlekedik, akkor {this.renderTippHighlitedText(this.state.saveablePollutionValues.Car, 'kg')} CO2-vel csökkenti a kibocsájtását</Text>
+                    tippText = <Text style={styles.generalTippText}>Ha évente {this.renderTippHighlitedText(distanceSaved, 'ezer km')}-el kevesebbet közlekedik, akkor {this.renderTippHighlitedText(this.state.saveablePollutionValues.Car, 'kg')} CO2-vel csökkenti a kibocsájtását</Text>
                     break;
                 case "WORKGOING":
                     //itt nem számoljhuk azt hogy mennyi pénzt spórolhatna meg, hiszen minden hónapban bérletet kellene vennie, ami lehet hogy drágább mint a megspórolt pénz
                     //220 nap kb amit az ember munkával tölt egy évben
                     let kmSavedPerYear = this.props.personalConsumptionData.otherData.workPlaceDistanceFromHome * 220
-                    tippText = <Text>Ha tömegközlekedéssel járna dolgozni, évente {this.renderTippHighlitedText(kmSavedPerYear * this.state.co2PollutionForOneKmOfDistanceTravelledWithCar, 'kg')} CO2-vel csökkentheti a kibocsájtását</Text>
+                    tippText = <Text style={styles.generalTippText}>Ha tömegközlekedéssel járna dolgozni, évente {this.renderTippHighlitedText(kmSavedPerYear * this.state.co2PollutionForOneKmOfDistanceTravelledWithCar, 'kg')} CO2-vel csökkentheti a kibocsájtását</Text>
                     break;
                 case "DARKMODE_NOTUSED":
-                    tippText = <Text>Pusztán azzal, hogy Dark Mode-ot használ a számítógépén, úgy évi {this.renderTippHighlitedText(this.state.saveablePollutionValues.MonitorWithDarkMode, 'kg')} CO2-vel csökkentheti a kibocsájtását</Text>
+                    tippText = <Text style={styles.generalTippText}>Pusztán azzal, hogy Dark Mode-ot használ a számítógépén, úgy évi {this.renderTippHighlitedText(this.state.saveablePollutionValues.MonitorWithDarkMode, 'kg')} CO2-vel csökkentheti a kibocsájtását</Text>
                     break;
                 default:
                     break;
@@ -530,6 +539,7 @@ class TheKey extends Component {
         if (booleanValue) {
             return (<>
                 {tippText}
+                <View style={styles.divisionLine}></View>
             </>)
         }
     }
@@ -601,7 +611,7 @@ class TheKey extends Component {
     renderFoodTable() {
         if (this.determineIfFoodTableShouldBeRendered()) {
             return (<>
-                <Text>Az alábbi táblázat adja meg, hogy az egyes ételfajtákból ha bizonyos mennyiséggel kevesebbet fogyasztunk, akkor mennyivel kímélhetjük környezetünket</Text>
+                <Text style={styles.tableTitleText}>Az alábbi táblázat adja meg, hogy az egyes ételfajtákból ha bizonyos mennyiséggel kevesebbet fogyasztunk, akkor mennyivel kímélhetjük évente környezetünket</Text>
                 <View style={styles.container}>
                     <Table borderStyle={{ borderWidth: 2, borderColor: '#c8e1ff' }}>
                         <Row data={this.state.foodTableHead} style={styles.foodTableHead} textStyle={styles.foodTableText} />
@@ -632,7 +642,7 @@ class TheKey extends Component {
                     electricityData.push("Naponta " + consumptionNumberForType + " óra")
                     electricityData.push("Évi " + yearlyKwhSave + " kwh")
                     electricityData.push(parseFloat(this.state.saveablePollutionValues.TV).toFixed(2))
-                    electricityData.push(yearlyKwhSave * this.state.kwhElectricityPriceInHuf)
+                    electricityData.push(parseInt(yearlyKwhSave * this.state.kwhElectricityPriceInHuf))
                     joined = this.state.electricityTableData.concat([electricityData]);
                     this.setState({ electricityTableData: joined })
                     break;
@@ -643,7 +653,7 @@ class TheKey extends Component {
                     electricityData.push("Naponta " + consumptionNumberForType + " óra")
                     electricityData.push("Évi " + yearlyKwhSave + " kwh")
                     electricityData.push(parseFloat(this.state.saveablePollutionValues.PC).toFixed(2))
-                    electricityData.push(yearlyKwhSave * this.state.kwhElectricityPriceInHuf)
+                    electricityData.push(parseInt(yearlyKwhSave * this.state.kwhElectricityPriceInHuf))
                     joined = this.state.electricityTableData.concat([electricityData]);
                     this.setState({ electricityTableData: joined })
                     break;
@@ -654,7 +664,7 @@ class TheKey extends Component {
                     electricityData.push("Naponta " + consumptionNumberForType + " óra")
                     electricityData.push("Évi " + yearlyKwhSave + " kwh")
                     electricityData.push(parseFloat(this.state.saveablePollutionValues.Console).toFixed(2))
-                    electricityData.push(yearlyKwhSave * this.state.kwhElectricityPriceInHuf)
+                    electricityData.push(parseInt(yearlyKwhSave * this.state.kwhElectricityPriceInHuf))
                     joined = this.state.electricityTableData.concat([electricityData]);
                     this.setState({ electricityTableData: joined })
                     break;
@@ -665,7 +675,7 @@ class TheKey extends Component {
                     electricityData.push("Naponta " + consumptionNumberForType + " óra")
                     electricityData.push("Évi " + yearlyKwhSave + " kwh")
                     electricityData.push(parseFloat(this.state.saveablePollutionValues.AirConditioner).toFixed(2))
-                    electricityData.push(yearlyKwhSave * this.state.kwhElectricityPriceInHuf)
+                    electricityData.push(parseInt(yearlyKwhSave * this.state.kwhElectricityPriceInHuf))
                     joined = this.state.electricityTableData.concat([electricityData]);
                     this.setState({ electricityTableData: joined })
                     break;
@@ -676,7 +686,7 @@ class TheKey extends Component {
                     electricityData.push("Naponta " + consumptionNumberForType + " óra")
                     electricityData.push("Évi " + yearlyKwhSave + " kwh")
                     electricityData.push(parseFloat(this.state.saveablePollutionValues.NormalHeater).toFixed(2))
-                    electricityData.push(yearlyKwhSave * this.state.kwhElectricityPriceInHuf)
+                    electricityData.push(parseInt(yearlyKwhSave * this.state.kwhElectricityPriceInHuf))
                     joined = this.state.electricityTableData.concat([electricityData]);
                     this.setState({ electricityTableData: joined })
                     break;
@@ -687,7 +697,7 @@ class TheKey extends Component {
                     electricityData.push("Naponta " + consumptionNumberForType + " óra")
                     electricityData.push("Évi " + yearlyKwhSave + " kwh")
                     electricityData.push(parseFloat(this.state.saveablePollutionValues.InfraHeater).toFixed(2))
-                    electricityData.push(yearlyKwhSave * this.state.kwhElectricityPriceInHuf)
+                    electricityData.push(parseInt(yearlyKwhSave * this.state.kwhElectricityPriceInHuf))
                     joined = this.state.electricityTableData.concat([electricityData]);
                     this.setState({ electricityTableData: joined })
                     break;
@@ -762,6 +772,9 @@ class TheKey extends Component {
             if (this.props.personalConsumptionData.foodConsumptions.Pork > this.state.thresholds.Pork) {
                 this.setMessageRenderingBooleanValues("PORK_OVERCONSUMPTION")
             }
+            if (this.state.messageRenderingBooleans.Beef || this.state.messageRenderingBooleans.Lamb || this.state.messageRenderingBooleans.PorkGeneral) {
+                this.setMessageRenderingBooleanValues("OTHERMEAT_CONSUMPTION")
+            }
 
             let totalBottledBeveragesConsumption = this.props.personalConsumptionData.plasticConsumptions.BottledCola + this.props.personalConsumptionData.plasticConsumptions.BottledWater
 
@@ -828,14 +841,18 @@ class TheKey extends Component {
     }
 
     renderModal() {
-        if (this.determineIfFoodTableShouldBeRendered() || this.determineIfElectricityTableShouldBeRendered()) {
+        if (this.determineIfFoodTableShouldBeRendered() || this.determineIfElectricityTableShouldBeRendered() || this.state.messageRenderingBooleans.DarkModeNotUsed) {
             return (<>
-                <TouchableHighlight
-                    onPress={() => {
-                        this.setModalVisible(!this.state.modalVisible);
-                    }}>
-                    <Text>Összegzés</Text>
-                </TouchableHighlight>
+                <View style={styles.summaryView}>
+                    <TouchableHighlight
+                        onPress={() => {
+                            this.setModalVisible(!this.state.modalVisible);
+                        }}
+                        style={styles.summaryButton}
+                    >
+                        <Text style={styles.summaryText}>ÖSSZEGZÉS</Text>
+                    </TouchableHighlight>
+                </View>
 
                 <Modal
                     animationType="slide"
@@ -844,14 +861,17 @@ class TheKey extends Component {
                     onRequestClose={() => {
                         Alert.alert('Modal has been closed.');
                     }}>
+                    <TouchableHighlight
+                        onPress={() => {
+                            this.setModalVisible(!this.state.modalVisible);
+                        }}
+                        style={styles.backModalButton}
+                    >
+                        <Text style={styles.backModalButtonText}>{"<"} VISSZA</Text>
+                    </TouchableHighlight>
                     <View style={{ marginTop: 22 }}>
                         <View>
-                            <TouchableHighlight
-                                onPress={() => {
-                                    this.setModalVisible(!this.state.modalVisible);
-                                }}>
-                                <Text>{"<"} Vissza</Text>
-                            </TouchableHighlight>
+
 
                             <PieChart
                                 data={this.state.pieChartData}
@@ -865,14 +885,22 @@ class TheKey extends Component {
                                 absolute
                             />
 
-                            <View>
-                                <Text>Összesen {this.renderTippHighlitedText(parseFloat(this.state.saveablePollutionValues.totalCO2Pollution) + parseFloat(this.state.saveablePollutionValues.totalMethanePollution), 'kg')}-al lehetne csökkenteni
+                            <View style={styles.summaryModalView}>
+                                <Text style={styles.summaryModalText}>Összesen {this.renderTippHighlitedText(parseFloat(this.state.saveablePollutionValues.totalCO2Pollution) + parseFloat(this.state.saveablePollutionValues.totalMethanePollution), 'kg')}-al lehetne csökkenteni
                             évente a károsanyag kibocsájtását.</Text>
-                                <Text>Ebből {this.renderTippHighlitedText(this.state.saveablePollutionValues.totalCO2Pollution, 'kg')}-ot tesz ki a CO2. Ez a fogyasztás évente:</Text>
-
-                                <Text> <Text style={{ color: 'red' }}>{parseInt(this.state.saveablePollutionValues.totalCO2Pollution / this.state.averageCO2AbsorptionOfATreePerYear)} fát</Text></Text>
-                                <Text> <Text style={{ color: 'red' }}>{parseInt(this.state.saveablePollutionValues.totalCO2Pollution / this.state.co2PollutionForOneKmOfDistanceTravelledWithCar)} megtett km-t</Text></Text>
-                                <Text>jelent</Text>
+                                <Text style={styles.co2Text}>Ebből {this.renderTippHighlitedText(this.state.saveablePollutionValues.totalCO2Pollution, 'kg')}-ot tesz ki a CO2.</Text>
+                                <Text style={{ fontWeight: 'bold' }}>Ez a fogyasztás évente:</Text>
+                                <View style={styles.co2Table}>
+                                    <View >
+                                        <Image source={require('../assets/icons/tree.png')} style={styles.icon} />
+                                        <Text> <Text style={styles.co2TableText}>{parseInt(this.state.saveablePollutionValues.totalCO2Pollution / this.state.averageCO2AbsorptionOfATreePerYear)} fát</Text></Text>
+                                    </View>
+                                    <View >
+                                        <Image source={require('../assets/icons/car.png')} style={styles.icon} />
+                                        <Text> <Text style={styles.co2TableText}>{parseInt(this.state.saveablePollutionValues.totalCO2Pollution / this.state.co2PollutionForOneKmOfDistanceTravelledWithCar)} megtett km-t</Text></Text>
+                                    </View>
+                                </View>
+                                <Text style={{ fontWeight: 'bold' }}>jelent.</Text>
                             </View>
 
 
@@ -891,6 +919,8 @@ class TheKey extends Component {
             return (<>
 
                 {this.renderFoodTable()}
+
+                {this.renderTippsForType("OTHERMEAT_CONSUMPTION", this.state.messageRenderingBooleans.OtherMeatConsumption)}
 
                 {this.renderTippsForType("TOTALMEATCONSUMPTION", this.state.messageRenderingBooleans.WeeklyTotalMeatConsumpion)}
 
@@ -917,10 +947,15 @@ class TheKey extends Component {
                 {this.renderModal()}
 
 
+
+            </>)
+        } else if(this.props.personalConsumptionData.booleanData===""){
+            return(<>
+                <Text style={styles.emptyAdviceText}>KÉREM TÖLTSE KI A "PC ÉS KONZOL FOGYASZTÁS" ÉS "SZEMÉLYES FOGYASZTÁS" OLDALAKAT!</Text>
             </>)
         }
         return (<>
-            <View>
+            <View style={styles.gifImage}>
                 <Image source={require('../assets/spinner.gif')} />
             </View>
         </>)
@@ -933,8 +968,8 @@ const styles = StyleSheet.create({
     highlitedText: {
         color: "red"
     },
-    container: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
-    foodTableHead: { height: 70, backgroundColor: '#f1f8ff' },
+    container: { flex: 1, padding: 16, paddingTop: 10, backgroundColor: '#fff' },
+    foodTableHead: { height: 100, backgroundColor: '#f1f8ff', justifyContent: 'center' },
     foodTableText: { margin: 1 },
     gifContainer: {
         flexDirection: 'column',
@@ -944,6 +979,77 @@ const styles = StyleSheet.create({
     },
     gifImage: {
         alignSelf: 'center'
+    },
+    divisionLine: {
+        borderBottomWidth: 1
+    },
+    tableTitleText: {
+        textAlign: 'center',
+        fontWeight: 'bold'
+    },
+    generalTippText: {
+        fontWeight: 'bold',
+        padding: 10
+    },
+    linkText: {
+        fontWeight: 'bold',
+        textAlign: 'center',
+        color: '#2096f3',
+        backgroundColor: '#b8d1cf'
+    },
+    summaryView: {
+        marginTop: 20,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    summaryButton: {
+        backgroundColor: '#ffc108',
+        width: '50%',
+        borderRadius: 20,
+        paddingTop: 5,
+        paddingBottom: 5,
+    },
+    summaryText: {
+        fontWeight: 'bold',
+        color: 'white',
+        textAlign: 'center'
+    },
+    summaryModalView: {
+        padding: 10,
+    },
+    summaryModalText: {
+        textAlign: 'center',
+        fontWeight: 'bold'
+    },
+    co2Text: {
+        marginTop: 10
+    },
+    co2Table: {
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        fontWeight: 'bold'
+    },
+    co2TableText: {
+        fontWeight: 'bold',
+        color: 'red',
+    },
+    icon: {
+        width: 30,
+        height: 30,
+        alignSelf: 'center'
+    },
+    backModalButton: {
+        width: '100%',
+        backgroundColor: '#0a83a8'
+    },
+    backModalButtonText: {
+        padding: 25,
+        marginLeft: '10%',
+        color: 'white'
+    },
+    emptyAdviceText:{
+        fontWeight:'bold',
+        textAlign:'center'
     }
 });
 

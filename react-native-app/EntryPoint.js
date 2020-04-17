@@ -22,7 +22,7 @@ class EntryPoint extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            ipAddress: '192.168.1.113',
+            ipAddress: '192.168.1.3',
             isButtonpressed: false
         }
     }

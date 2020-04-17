@@ -1,1 +1,1 @@
-[{"challengeId":0,"isItCompleted":false,"challengeDescription":"Szedj fel egy szemetet"}]
+[{"challengeId":0,"isItCompleted":false,"challengeDescription":"Szedjen fel egy szemetet"}]

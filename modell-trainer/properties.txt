@@ -1,5 +1,5 @@
 {
 	"classLimit": 200,
-	"garbageFolderPath": "",
-	"imagenetFolderPath": ""
+	"garbageFolderPath": "C:\\GITHUB\\szakdolgozat\\modell-trainer\\garbage_images",
+	"imagenetFolderPath": "C:\\Ray\\Egyetem\\SZAKDOLGOZAT\\imagenet-sample-train\\train"
 }

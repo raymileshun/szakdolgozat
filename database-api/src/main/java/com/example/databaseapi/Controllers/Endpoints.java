@@ -126,7 +126,7 @@ public class Endpoints {
     //itt még lehetnek paraméterek, hogy ne beégetve adja hozzá a challenget
     @GetMapping("/saveChallenge")
     void setDailyChallengesEndpoint() throws IOException, ParseException {
-        service.addChallenge(new Challenge(0,"Szedj fel egy szemetet",false));
+        service.addChallenge(new Challenge(0,"Szedjen fel egy szemetet",false));
     }
 
     @GetMapping("/foodpollutions")

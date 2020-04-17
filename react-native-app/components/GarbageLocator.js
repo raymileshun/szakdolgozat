@@ -33,28 +33,28 @@ class GarbageLocator extends Component {
             predictions: "",
             isImageProcessingPending: false,
 
-            challengeObject:""
+            challengeObject: ""
         }
     }
 
-    async handleChallengeUpdates(response){
-        if(response.statusCode===200){
-           await getChallengeById(this.props.ipAddress,response.challengeId)
+    async handleChallengeUpdates(response) {
+        if (response.statusCode === 200) {
+            await getChallengeById(this.props.ipAddress, response.challengeId)
                 //ide jön a push üzenet majd a response.challengeDescriptionnal
-                .then(responseJson=>this.setState({challengeObject:responseJson}))
+                .then(responseJson => this.setState({ challengeObject: responseJson }))
             // this.props.createPushNotification(this.state.challengeObject.challengeDescription);
 
-            setTimeout(()=>{
+            setTimeout(() => {
                 this.props.createPushNotification(this.state.challengeObject.challengeDescription);
-              }, 3500)
+            }, 3500)
         }
     }
 
-    componentDidUpdate(prevProps,prevState){
-        
-        if((this.state.garbageMarkers.length!==0 && prevState.garbageMarkers.length!==0) && this.state.garbageMarkers!==prevState.garbageMarkers){
-            getDailyChallengeResponse(this.props.ipAddress,this.state,prevState)
-            .then(responseJson => this.handleChallengeUpdates(responseJson))
+    componentDidUpdate(prevProps, prevState) {
+
+        if ((this.state.garbageMarkers.length !== 0 && prevState.garbageMarkers.length !== 0) && this.state.garbageMarkers !== prevState.garbageMarkers) {
+            getDailyChallengeResponse(this.props.ipAddress, this.state, prevState)
+                .then(responseJson => this.handleChallengeUpdates(responseJson))
         }
     }
 
@@ -111,12 +111,15 @@ class GarbageLocator extends Component {
         ImagePicker.launchImageLibrary(options, response => {
             if (response.uri) {
                 let data = this.createFormData(response)
-                this.setState({isImageProcessingPending: true})
+                this.setState({ isImageProcessingPending: true })
                 sendGarbageImage(this.props.ipAddress, data)
                     .then(responseJson => {
-                        if (responseJson.isItGarbage === "false") {
+                        if (responseJson.isItGarbage === "true") {
                             saveGarbageMarker(this.props.ipAddress, responseJson.imagePath, this.state.locationDatas)
-                            .then(responseJson => this.handleGarbageSaveResponse(responseJson))
+                                .then(responseJson => this.handleGarbageSaveResponse(responseJson))
+                        } else{
+                            this.setState({ isImageProcessingPending: false })
+                            return;
                         }
                     })
                 // .then(responseJson => this.setState({predictions:responseJson}))
@@ -138,9 +141,9 @@ class GarbageLocator extends Component {
     }
 
 
-    handleGarbageSaveResponse = (response) =>{
-        if(response.statusCode===200){
-            this.setState({isImageProcessingPending:false})
+    handleGarbageSaveResponse = (response) => {
+        if (response.statusCode === 200) {
+            this.setState({ isImageProcessingPending: false })
             this.onMarkerUpdate();
         }
     }
@@ -150,13 +153,14 @@ class GarbageLocator extends Component {
         if (this.state.locationDatas.latitude === 0 || !this.state.loadMap) {
             return (
                 <><View>
-                    <Text>Térkép betöltés alatt</Text>
+                    <Text style={{ fontWeight: 'bold', textAlign: 'center' }}>Térkép betöltés alatt. Kérem Várjon</Text>
+                    <Image source={require('../assets/spinner.gif')} style={{ alignSelf: 'center' }} />
                 </View></>
             )
         }
 
-        if(this.state.isImageProcessingPending){
-            return(<>
+        if (this.state.isImageProcessingPending) {
+            return (<>
                 <Text>Feldolgozás...</Text>
             </>)
         }
@@ -164,13 +168,9 @@ class GarbageLocator extends Component {
         return (
             <>
                 <View>
-                    <Text>Saját koordináták: {this.state.locationDatas.latitude},  {this.state.locationDatas.longitude}</Text>
+                    <Text style={{ fontWeight: 'bold', textAlign: 'center' }}>Saját koordináták: </Text>
+                    <Text style={{ textAlign: 'center' }}>{this.state.locationDatas.latitude},  {this.state.locationDatas.longitude}</Text>
                 </View >
-
-                <TouchableHighlight onPress={this.handleChoosePhoto}>
-                    <Text>Kép feltöltése</Text>
-                </TouchableHighlight>
-
 
                 <Modal
                     animationType="slide"
@@ -179,32 +179,37 @@ class GarbageLocator extends Component {
                     onRequestClose={() => {
                         Alert.alert('Modal has been closed.');
                     }}>
+                    <TouchableHighlight
+                        onPress={() => {
+                            this.setModalVisible(!this.state.modalVisible);
+                        }}
+                        style={styles.backModalButton}
+                    >
+                        <Text style={styles.backModalButtonText}>{"<"} VISSZA</Text>
+                    </TouchableHighlight>
                     <View style={{ marginTop: 22 }}>
-                        <View>
-                            <Text>{this.state.selectedMarker.latitude}</Text>
+                        <View style={styles.pictureView}>
+                            <Text style={{ fontWeight: 'bold' }}>Feltöltés dátuma:</Text>
+                            <Text>{this.state.selectedMarker.uploadDate}</Text>
                             <Image
                                 // key={'http://' + this.props.ipAddress + ':8080/getimage/' + this.state.selectedMarker.id}
-                                style={{ width: 250, height: 250 }}
-                                source={{ uri: 'http://' + this.props.ipAddress + ':8080/getimage/' + this.state.selectedMarker.id+"?random_number="+Date.now()}} 
-                                />
+                                style={styles.garbageImage}
+                                source={{ uri: 'http://' + this.props.ipAddress + ':8080/getimage/' + this.state.selectedMarker.id + "?random_number=" + Date.now() }}
+                            />
 
-                            <TouchableHighlight
-                                onPress={() => {
-                                    this.setModalVisible(!this.state.modalVisible);
-                                }}>
-                                <Text>Modal bezárása</Text>
-                            </TouchableHighlight>
-
-                            <TouchableHighlight
-                                onPress={() => {
-                                    this.state.selectedMarker.isItCollected === "false" ? this.prepareAndSendMarkerUpdateRequest(this.state.selectedMarker.id) : "null"
-                                }}>
-                                <Text>Marker frissítése</Text>
-                            </TouchableHighlight>
+                            <View style={styles.summaryView}>
+                                <TouchableHighlight
+                                    onPress={() => {
+                                        this.state.selectedMarker.isItCollected === "false" ? this.prepareAndSendMarkerUpdateRequest(this.state.selectedMarker.id) : "null"
+                                    }}
+                                    style={styles.updateButton}
+                                >
+                                    <Text style={styles.summaryText}>HELY FRISSÍTÉSE</Text>
+                                </TouchableHighlight>
+                            </View>
                         </View>
                     </View>
                 </Modal>
-
 
 
 
@@ -225,8 +230,8 @@ class GarbageLocator extends Component {
                                 latitude: this.state.locationDatas.latitude,
                                 longitude: this.state.locationDatas.longitude
                             }}
-                            title={"Initial marker title"}
-                            description={"fos"}
+                            title={"Az ön pozíciója"}
+                            description={""}
                         >
                             <Image source={require('../assets/you-are-here.png')} style={{ height: 40, width: 40 }} />
                         </Marker>
@@ -247,7 +252,6 @@ class GarbageLocator extends Component {
                                         this.setModalVisible(true)
                                 }}>
                                     <View style={styles.infoWindow}>
-                                        <Text>{marker.id}</Text>
                                         <Text>{marker.latitude}</Text>
                                         <Text>{marker.longitude}</Text>
                                     </View>
@@ -260,6 +264,14 @@ class GarbageLocator extends Component {
 
 
                     </MapView>
+                </View>
+
+                <View style={styles.summaryView}>
+                    <TouchableHighlight
+                        onPress={this.handleChoosePhoto}
+                        style={styles.summaryButton}>
+                        <Text style={styles.summaryText}>KÉP FELTÖLTÉSE</Text>
+                    </TouchableHighlight>
                 </View>
             </>
         )
@@ -276,12 +288,53 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     map: {
-        width: Math.round(Dimensions.get('window').height) * 0.7,
-        height: Math.round(Dimensions.get('window').width)
+        width: Math.round(Dimensions.get('window').width),
+        height: Math.round(Dimensions.get('window').height) * 0.7
         //...StyleSheet.absoluteFillObject,
     },
     infoWindow: {
         backgroundColor: 'white'
+    },
+    summaryView: {
+        marginTop: 20,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    summaryButton: {
+        backgroundColor: '#ff5722',
+        width: '50%',
+        borderRadius: 20,
+        paddingTop: 5,
+        paddingBottom: 5,
+    },
+    summaryText: {
+        fontWeight: 'bold',
+        color: 'white',
+        textAlign: 'center'
+    },
+    pictureView: {
+        marginTop: 20
+    },
+    garbageImage: {
+        width: 400,
+        height: 300,
+        alignSelf: 'center'
+    },
+    updateButton: {
+        backgroundColor: '#8ac24a',
+        width: '50%',
+        borderRadius: 20,
+        paddingTop: 5,
+        paddingBottom: 5,
+    },
+    backModalButton: {
+        width: '100%',
+        backgroundColor: '#0a83a8'
+    },
+    backModalButtonText: {
+        padding: 25,
+        marginLeft: '10%',
+        color: 'white'
     }
 });
 

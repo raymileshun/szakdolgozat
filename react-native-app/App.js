@@ -28,6 +28,11 @@ import {
   DebugInstructions,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
+import { faBars, faDesktop,faUser,faLevelDownAlt,faMapMarked,faMedal,faSolarPanel } from '@fortawesome/free-solid-svg-icons'
+
+
 import PushNotification from "react-native-push-notification"
 
 import { fetchHardwareJson } from './Requests'
@@ -37,16 +42,16 @@ import RenewableSimulation from './components/RenewableSimulation'
 import GarbageLocator from './components/GarbageLocator'
 import Challenges from './components/Challenges'
 import TheKey from './components/TheKey'
- 
+
 
 
 class App extends React.Component {
   constructor(props) {
     PushNotification.configure({
-      onRegister: function(token) {
+      onRegister: function (token) {
         console.log("TOKEN:", token);
       },
-      onNotification: function(notification) {
+      onNotification: function (notification) {
         console.log("NOTIFICATION:", notification);
         // notification.finish(PushNotificationIOS.FetchResult.NoData);
       },
@@ -86,21 +91,22 @@ class App extends React.Component {
         hardwareDailyUseInHours: 0
       },
 
-      personalConsumptionPageData:{
-        foodConsumptions:"",
-        booleanData:"",
-        plasticConsumptions:"",
-        otherData:""
+      personalConsumptionPageData: {
+        foodConsumptions: "",
+        booleanData: "",
+        plasticConsumptions: "",
+        otherData: ""
       },
 
       modalVisible: false,
 
       pageTexts: {
-        HardwarePicker: "Pc és konzol fogyasztásának kiszámítása",
-        PersonalConsumption: "Saját fogyasztás kiszámítása",
-        RenewableSimulation: "Megújuló energia-szimuláció",
-        GarbageLocator: "Szemét térkép",
-        TheKey: "...but first it must be found"
+        HardwarePicker: "PC- ÉS KONZOLFOGYASZTÁS",
+        PersonalConsumption: "SAJÁT FOGYASZTÁS",
+        RenewableSimulation: "MEGÚJULÓ ENERGIA-SZIMULÁCIÓ",
+        GarbageLocator: "SZEMÉT TÉRKÉP",
+        TheKey: "FOGYASZTÁS OPTIMALIZÁLÁS",
+        Challenges: "KIHÍVÁSOK"
       }
     }
 
@@ -108,12 +114,12 @@ class App extends React.Component {
     this.personalConsumptionPageDataCallback = this.personalConsumptionPageDataCallback.bind(this)
   }
 
-createPushNotification=(challengeDescription)=>{
+  createPushNotification = (challengeDescription) => {
     PushNotification.localNotification({
       title: "Challenge teljesítve!", // (optional)
       message: challengeDescription, // (required)
-  })
-}
+    })
+  }
 
   async componentDidMount() {
 
@@ -132,7 +138,7 @@ createPushNotification=(challengeDescription)=>{
 
     this.setState({ datasAreFetched: true })
 
-    this.setState({activePageText:this.state.pageTexts.HardwarePicker})
+    this.setState({ activePageText: this.state.pageTexts.HardwarePicker })
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -175,7 +181,7 @@ createPushNotification=(challengeDescription)=>{
         return <RenewableSimulation />
         break;
       case 'GarbageLocator':
-        return <GarbageLocator ipAddress={this.props.ipAddress} createPushNotification={this.createPushNotification}/>
+        return <GarbageLocator ipAddress={this.props.ipAddress} createPushNotification={this.createPushNotification} />
         break;
       case 'Challenges':
         return <Challenges ipAddress={this.props.ipAddress} />
@@ -214,14 +220,14 @@ createPushNotification=(challengeDescription)=>{
   }
 
 
-  personalConsumptionPageDataCallback(foodConsumptions,booleanData,plasticConsumptions,otherData){
-    let personalConsumptionPageData = {...this.state.personalConsumptionPageData}
-    personalConsumptionPageData.foodConsumptions=foodConsumptions
-    personalConsumptionPageData.booleanData=booleanData
-    personalConsumptionPageData.plasticConsumptions=plasticConsumptions
-    personalConsumptionPageData.otherData=otherData
+  personalConsumptionPageDataCallback(foodConsumptions, booleanData, plasticConsumptions, otherData) {
+    let personalConsumptionPageData = { ...this.state.personalConsumptionPageData }
+    personalConsumptionPageData.foodConsumptions = foodConsumptions
+    personalConsumptionPageData.booleanData = booleanData
+    personalConsumptionPageData.plasticConsumptions = plasticConsumptions
+    personalConsumptionPageData.otherData = otherData
 
-    this.setState({personalConsumptionPageData:personalConsumptionPageData})
+    this.setState({ personalConsumptionPageData: personalConsumptionPageData })
 
   }
 
@@ -236,10 +242,16 @@ createPushNotification=(challengeDescription)=>{
 
   loadHeader() {
     return (<>
-      <Text>{this.state.activePageText}</Text>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerIconContainer} onPress={() => this.setModalVisible(true)}>
+          <FontAwesomeIcon style={styles.headerIcon} icon={faBars} size={30} />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>{this.state.activePageText}</Text>
+      </View>
 
     </>)
   }
+
 
 
 
@@ -262,35 +274,54 @@ createPushNotification=(challengeDescription)=>{
           onRequestClose={() => {
             Alert.alert('Modal has been closed.');
           }}>
-          <View style={styles.sectionContainer}>
-            <TouchableHighlight
-              onPress={() => {
-                this.setModalVisible(!this.state.modalVisible);
-              }}>
-              <Text>{"<"} Vissza</Text>
-            </TouchableHighlight>
-            <Text style={styles.sectionTitle}></Text>
-            <TouchableOpacity onPress={() => this.handleButtonPress("Picker")}>
-              <View style={styles.button}>
-                <Text style={styles.buttonText}>HardwarePicker</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => this.handleButtonPress("PersonalConsumption")}>
-              <View style={styles.button}>
-                <Text style={styles.buttonText}>Személyes fogyasztás</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => this.handleButtonPress("RenewableSimulation")}>
-              <View style={styles.button}>
-                <Text style={styles.buttonText}>Szimuláció</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => this.handleButtonPress("GarbageLocator")}>
-              <View style={styles.button}>
-                <Text style={styles.buttonText}>Szemét térkép</Text>
-              </View>
-            </TouchableOpacity>
+          <TouchableHighlight
+            onPress={() => {
+              this.setModalVisible(!this.state.modalVisible);
+            }}>
+            <View style={styles.backButton}>
+              <Text style={styles.backButtonText}>{"<"} VISSZA</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableOpacity onPress={() => this.handleButtonPress("Picker")}>
+            <View style={styles.button}>
+              <FontAwesomeIcon style={styles.normalIcon} icon={faDesktop} size={iconSize} />
+              <Text style={styles.buttonText}>PC- ÉS KONZOLFOGYASZTÁS</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.handleButtonPress("PersonalConsumption")}>
+            <View style={styles.button}>
+              <FontAwesomeIcon style={styles.normalIcon} icon={faUser} size={iconSize} />
+              <Text style={styles.buttonText}>SZEMÉLYES FOGYASZTÁS</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.handleButtonPress("TheKey")}>
+            <View style={styles.button}>
+              <FontAwesomeIcon style={styles.customIcon} icon={faLevelDownAlt} size={iconSize} />
+              <Text style={styles.buttonText}>FOGYASZTÁS OPTIMALIZÁLÁS</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.handleButtonPress("RenewableSimulation")}>
+            <View style={styles.button}>
+              <FontAwesomeIcon style={styles.normalIcon} icon={faSolarPanel} size={iconSize} />
+              <Text style={styles.buttonText}>MEGÚJULÓ ENERGIA-SZIMULÁCIÓ</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.handleButtonPress("GarbageLocator")}>
+            <View style={styles.button}>
+              <FontAwesomeIcon style={styles.normalIcon} icon={faMapMarked} size={iconSize} />
+              <Text style={styles.buttonText}>SZEMÉT TÉRKÉP</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.handleButtonPress("Challenges")}>
+            <View style={styles.button}>
+              <FontAwesomeIcon style={styles.normalIcon} icon={faMedal} size={iconSize} />
+              <Text style={styles.buttonText}>KIHÍVÁSOK</Text>
+            </View>
+          </TouchableOpacity>
+          <View style={styles.modalBottom}>
+            <Text></Text>
           </View>
+
         </Modal>
 
 
@@ -302,6 +333,7 @@ createPushNotification=(challengeDescription)=>{
 
             {this.loadHeader()}
 
+
             {global.HermesInternal == null ? null : (
               <View style={styles.engine}>
                 <Text style={styles.footer}>Engine: Hermes</Text>
@@ -309,49 +341,7 @@ createPushNotification=(challengeDescription)=>{
             )}
             <View style={styles.body}>
 
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}></Text>
-                <TouchableOpacity onPress={() => this.setModalVisible(true)}>
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>Modal</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({ activePage: 'Picker' })}>
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>HardwarePicker</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({ activePage: 'PersonalConsumption' })}>
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>Személyes fogyasztás</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({ activePage: 'RenewableSimulation' })}>
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>Szimuláció</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({ activePage: 'GarbageLocator' })}>
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>Szemét térkép</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({ activePage: 'Challenges' })}>
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>Kihívások</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => this.setState({ activePage: 'TheKey' })}>
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>Fogyasztás optimalizálás</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-
               {this.renderPage(this.state.activePage)}
-
-
 
             </View>
           </ScrollView>
@@ -361,7 +351,47 @@ createPushNotification=(challengeDescription)=>{
   }
 };
 
+const iconSize = 20
+
 const styles = StyleSheet.create({
+  header: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#3b3630',
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  headerIconContainer: {
+    flex: 1,
+    paddingLeft: '10%'
+  },
+  headerIcon: {
+    color: '#735b3e',
+  },
+  normalIcon: {
+    marginLeft: '4%',
+    marginTop: '5%',
+    position: 'absolute'
+  },
+  customIcon:{
+    transform:[{
+      rotate:'-45deg'
+    }],
+    marginLeft: '4%',
+    marginTop: '5%',
+    position: 'absolute'
+  },
+  headerText: {
+    flex: 5,
+    fontSize: 14,
+    color: '#46b5d1',
+    paddingRight: '3%',
+    fontFamily: 'Calibri',
+    fontWeight: 'bold',
+    textAlign: 'right'
+  },
+
   scrollView: {
     backgroundColor: Colors.lighter,
   },
@@ -370,7 +400,8 @@ const styles = StyleSheet.create({
     right: 0,
   },
   body: {
-    backgroundColor: Colors.white,
+    // backgroundColor: '#262524',
+    backgroundColor: Colors.white
   },
   sectionContainer: {
     marginTop: 32,
@@ -398,15 +429,28 @@ const styles = StyleSheet.create({
     paddingRight: 12,
     textAlign: 'right',
   },
+  modalBottom: {
+    height: '100%',
+    backgroundColor: 'white'
+  },
+  backButton: {
+    width: '100%',
+    backgroundColor: '#0a83a8'
+  },
   button: {
-    marginBottom: 30,
-    width: 260,
-    alignItems: 'center',
-    backgroundColor: '#2196F3'
+    width: '100%',
+    backgroundColor: '#e6e6e6',
+    borderBottomColor: 'black',
+    borderBottomWidth: 1,
   },
   buttonText: {
-    textAlign: 'center',
-    padding: 20,
+    padding: 25,
+    marginLeft: '10%',
+    color: 'black'
+  },
+  backButtonText:{
+    padding: 25,
+    marginLeft: '10%',
     color: 'white'
   },
   gifContainer: {
@@ -417,7 +461,7 @@ const styles = StyleSheet.create({
   },
   gifImage: {
     alignSelf: 'center'
-  }
+  },
 
 
 });

@@ -7,12 +7,15 @@ import {
     TextInput,
     StyleSheet,
     TouchableHighlight,
-    Modal
+    Modal,
+    Image
 } from 'react-native';
+import { PieChart, } from "react-native-chart-kit";
 
 import Slider from '@react-native-community/slider';
 import CheckBox from 'react-native-check-box'
 import { ThemeColors } from 'react-navigation';
+import { ScrollView } from 'react-native-gesture-handler';
 
 //REPÜLÉS KISZÁMÍTÁSA ÉS UTAZÁSOK!!! (trainnel összevetve)
 
@@ -161,7 +164,7 @@ class RenewableSimulation extends Component {
             priceForOneMegawattOfBiomass: 930,
 
             averageDailyHouseholdConsumptionInKW: 3.5,
-            dailyConsumptioninKwh:11,
+            dailyConsumptioninKwh: 11,
             batteryPriceForOneMegawattOfElectricity: 271,
             numberOfDaysForBatteryStorage: 1,
             multiplierForOneDayOfBatteryStorage: 1.2,
@@ -181,9 +184,9 @@ class RenewableSimulation extends Component {
             windMillsExpandPrice: 23,
 
             //grammban számolva
-            averageCO2EmissionOfCars: 140,
+            averageCO2EmissionOfCars: 160,
             //ezer kilométerben
-            averageTravelDistancePerYear: 15,
+            averageTravelDistancePerYear: 25,
 
 
             solarPanelsMegawatt: 0,
@@ -208,7 +211,9 @@ class RenewableSimulation extends Component {
             areSolarPanelOptionsVisible: true,
             areWindmillOptionsVisible: true,
             areBiomassOptionsVisible: true,
-            modalVisible: false
+            modalVisible: false,
+
+            pieChartData: []
 
         }
     }
@@ -269,38 +274,90 @@ class RenewableSimulation extends Component {
 
 
 
-        if(this.state.currentYearForElectricCarGrowthCalculation !== prevState.currentYearForElectricCarGrowthCalculation
-            || this.state.growthPercentageOfElectricCarsPerYear !== prevState.growthPercentageOfElectricCarsPerYear){
+        if (this.state.currentYearForElectricCarGrowthCalculation !== prevState.currentYearForElectricCarGrowthCalculation
+            || this.state.growthPercentageOfElectricCarsPerYear !== prevState.growthPercentageOfElectricCarsPerYear) {
 
-                let expectedNumberOfElectricCarsInHungary = Math.floor(parseInt(this.state.numberOfElectricCarsInHungary)*Math.pow(parseFloat(1+this.state.growthPercentageOfElectricCarsPerYear/100), parseInt(this.state.currentYearForElectricCarGrowthCalculation-this.state.electricCarsYearMinimumValue))) 
-                
-                this.setState({electricityNeededForElectricCars: expectedNumberOfElectricCarsInHungary*this.state.averageDailyConsumptionOfAnElectricCarInKw})
-                this.setState({expectedNumberOfElectricCarsInHungary:expectedNumberOfElectricCarsInHungary})
+            let expectedNumberOfElectricCarsInHungary = Math.floor(parseInt(this.state.numberOfElectricCarsInHungary) * Math.pow(parseFloat(1 + this.state.growthPercentageOfElectricCarsPerYear / 100), parseInt(this.state.currentYearForElectricCarGrowthCalculation - this.state.electricCarsYearMinimumValue)))
+
+            this.setState({ electricityNeededForElectricCars: expectedNumberOfElectricCarsInHungary * this.state.averageDailyConsumptionOfAnElectricCarInKw })
+            this.setState({ expectedNumberOfElectricCarsInHungary: expectedNumberOfElectricCarsInHungary })
         }
 
-        if(this.state.averageDailyHouseholdConsumptionInKW !== prevState.averageDailyHouseholdConsumptionInKW){
+        if (this.state.averageDailyHouseholdConsumptionInKW !== prevState.averageDailyHouseholdConsumptionInKW) {
+            this.setState({ dailyConsumptioninKwh: (this.state.averageDailyHouseholdConsumptionInKW * 100 / 30).toFixed(2) })
+        }
 
-            this.setState({dailyConsumptioninKwh:(this.state.averageDailyHouseholdConsumptionInKW*100/30).toFixed(2)})
+        if (this.state.numberOfDaysForBatteryStorage !== prevState.numberOfDaysForBatteryStorage) {
+            let batteryStorageForSolar = (this.state.numberOfDaysForBatteryStorage * this.state.multiplierForOneDayOfBatteryStorage * solarPanelsMegawatt)
+            let batteryStorageForWindMills = (this.state.numberOfDaysForBatteryStorage * this.state.multiplierForOneDayOfBatteryStorage * windMillsMegawatt)
+
+            this.setState({ batteryStorageForSolar: batteryStorageForSolar })
+            this.setState({ batteryStorageForWindMills: batteryStorageForWindMills })
+        }
+
+        if(this.state.averageDailyHouseholdConsumptionInKW!==prevState.averageDailyHouseholdConsumptionInKW){
+            this.setState({houseHoldsPoweredBySolar: parseInt((solarPanelsMegawatt * 1000 / this.state.averageDailyHouseholdConsumptionInKW * (this.state.peakSolarOutputPerformance / 100)).toFixed(0))})
+            this.setState({houseHoldsPoweredByWindMill:(windMillsMegawatt * 1000 / this.state.averageDailyHouseholdConsumptionInKW * (this.state.peakWindOutputPerformance / 100)).toFixed(0)})
+            this.setState({houseHoldsPoweredByBiomass:(biomassMegawatt * 1000 / this.state.averageDailyHouseholdConsumptionInKW * (this.state.peakBiomassOutPutPerformance / 100)).toFixed(0) })
         }
 
 
+    }
 
+    populatePieChartData() {
+        let appendData = []
+        let style = { color: "#fff70d", }
+        this.state.solarPanelsMegawatt === 0 ? null : appendData.push(this.returnPieChartData("Napelem", this.state.solarPanelsMegawatt, style))
+        style = { color: "#14d8ff", }
+        this.state.windMillsMegawatt === 0 ? null : appendData.push(this.returnPieChartData("Szélerőmű", this.state.windMillsMegawatt, style))
+        style = { color: "#0dd10d", }
+        this.state.biomassMegawatt === 0 ? null : appendData.push(this.returnPieChartData("Biomassza", this.state.biomassMegawatt, style))
+        this.setState({ pieChartData: appendData })
+
+
+    }
+
+
+    returnPieChartData(labelName, MGW, style) {
+        let pieData;
+        if (MGW > 0) {
+            pieData = {
+                name: labelName,
+                MGW: parseInt(MGW),
+                color: style.color,
+                legendFontColor: "#7F7F7F",
+                legendFontSize: 15
+            }
+            return pieData
+        }
+        pieData = {
+            name: labelName,
+            MGW: parseInt(0),
+            color: style.color,
+            legendFontColor: "#7F7F7F",
+            legendFontSize: 15
+        }
+        return pieData
     }
 
     renderMenuBar(menuType) {
         switch (menuType) {
             case "SOLAR":
                 return (<>
-                    <View style={{ height: 100, flexDirection: 'row' }}>
-                        <View style={{ flex: 8, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={styles.menuBar}>
+                        <Image source={require('../assets/icons/solar-panel.png')} style={styles.icon} />
+                        <View style={{ flex: 7, alignItems: 'center', justifyContent: 'center' }}>
                             <Text onPress={() => {
                                 this.setState({
                                     areSolarPanelOptionsVisible: !this.state.areSolarPanelOptionsVisible
                                 })
                             }}
+                                style={styles.menuText}
                             >
-                                Napelem menü
-                        </Text></View>
+                                NAPELEM MENÜ
+                        </Text>
+
+                        </View>
                         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                             {this.state.areSolarPanelOptionsVisible ? <Text style={{ transform: [{ rotate: "-90deg" }] }}>{"<"}</Text> : <Text>{"<"} </Text>}
                         </View>
@@ -310,15 +367,17 @@ class RenewableSimulation extends Component {
                 break;
             case "WIND":
                 return (<>
-                    <View style={{ height: 100, flexDirection: 'row' }}>
+                    <View style={styles.menuBar}>
+                        <Image source={require('../assets/icons/wind-turbine.png')} style={styles.icon} />
                         <View style={{ flex: 8, alignItems: 'center', justifyContent: 'center' }}>
                             <Text onPress={() => {
                                 this.setState({
                                     areWindmillOptionsVisible: !this.state.areWindmillOptionsVisible
                                 })
                             }}
+                                style={styles.menuText}
                             >
-                                Szélerőmű menü
+                                SZÉLERŐMŰ MENÜ
                         </Text></View>
                         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                             {this.state.areWindmillOptionsVisible ? <Text style={{ transform: [{ rotate: "-90deg" }] }}>{"<"}</Text> : <Text>{"<"} </Text>}
@@ -331,15 +390,17 @@ class RenewableSimulation extends Component {
                 break;
             case "BIOMASS":
                 return (<>
-                    <View style={{ height: 100, flexDirection: 'row' }}>
+                    <View style={styles.menuBar}>
+                        <Image source={require('../assets/icons/biomass.png')} style={styles.icon} />
                         <View style={{ flex: 8, alignItems: 'center', justifyContent: 'center' }}>
                             <Text onPress={() => {
                                 this.setState({
                                     areBiomassOptionsVisible: !this.state.areBiomassOptionsVisible
                                 })
                             }}
+                                style={styles.menuText}
                             >
-                                Biomassza menü
+                                BIOMASSZA MENÜ
                         </Text></View>
                         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                             {this.state.areBiomassOptionsVisible ? <Text style={{ transform: [{ rotate: "-90deg" }] }}>{"<"}</Text> : <Text>{"<"} </Text>}
@@ -361,17 +422,27 @@ class RenewableSimulation extends Component {
         this.setState({ modalVisible: visible });
     }
 
+    loadModal() {
+        this.populatePieChartData()
+        this.setModalVisible(!this.state.modalVisible);
+    }
+
+
 
     renderAreaTexts() {
         return (
             <>
                 <View>
-                    <TouchableHighlight
-                        onPress={() => {
-                            this.setModalVisible(!this.state.modalVisible);
-                        }}>
-                        <Text>Összegzés</Text>
-                    </TouchableHighlight>
+                    <View style={styles.summaryView}>
+                        <TouchableHighlight
+                            onPress={() => {
+                                this.loadModal()
+                            }}
+                            style={styles.summaryButton}
+                        >
+                            <Text style={styles.summaryText}>ÖSSZEGZÉS</Text>
+                        </TouchableHighlight>
+                    </View>
 
                     <Modal
                         animationType="slide"
@@ -380,33 +451,53 @@ class RenewableSimulation extends Component {
                         onRequestClose={() => {
                             Alert.alert('Modal has been closed.');
                         }}>
+
+                        <TouchableHighlight
+                            onPress={() => {
+                                this.setModalVisible(!this.state.modalVisible);
+                            }}
+                            style={styles.backModalButton}
+                        >
+                            <Text style={styles.backModalButtonText}>{"<"} VISSZA</Text>
+                        </TouchableHighlight>
                         <View style={{ marginTop: 22 }}>
-                            <View>
-                                <Text>Placeholder</Text>
+                            <ScrollView>
+                                <View>
+                                    <PieChart
+                                        data={this.state.pieChartData}
+                                        // data={pieData}
+                                        width={400}
+                                        height={220}
+                                        chartConfig={chartConfig}
+                                        accessor="MGW"
+                                        backgroundColor="transparent"
+                                        paddingLeft="15"
+                                        absolute
+                                    />
 
-                                <TouchableHighlight
-                                    onPress={() => {
-                                        this.setModalVisible(!this.state.modalVisible);
-                                    }}>
-                                    <Text>Modal bezárása</Text>
-                                </TouchableHighlight>
+                                    {this.renderFractionInfos()}
 
-                            </View>
+                                    <View style={{ marginBottom: 100 }}>
+                                        {this.renderNetworkExpandPrices()}
+                                    </View>
+
+                                </View>
+                            </ScrollView>
                         </View>
                     </Modal>
 
 
 
 
-                    {this.renderSolarPanelInfos()}
+                    {/* {this.renderSolarPanelInfos()} */}
 
-                    {this.renderWindMillInfos()}
+                    {/* {this.renderWindMillInfos()} */}
 
-                    {this.renderBatteryStorageInfos()}
+                    {/* {this.renderBatteryStorageInfos()} */}
 
-                    {this.renderFractionInfos()}
+                    {/* {this.renderFractionInfos()}
 
-                    {this.renderNetworkExpandPrices()}
+                    {this.renderNetworkExpandPrices()} */}
 
                 </View>
 
@@ -415,18 +506,22 @@ class RenewableSimulation extends Component {
         )
     }
 
-
+    renderHighlitedText(text, unit) {
+        return (<>
+            <Text style={styles.highlitedText}>{text} {unit}</Text>
+        </>)
+    }
 
     renderSolarPanelSliders() {
         if (this.state.areSolarPanelOptionsVisible) {
             return (<>
                 <TextInput
                     placeholder="Ellátott háztartások"
-
+                    keyboardType="numeric"
                     onChangeText={(solarPanelsArea) => this.setState({ solarPanelsArea: this.state.solarPanelsMinimumValue + Math.ceil((solarPanelsArea * this.state.averageDailyHouseholdConsumptionInKW / 1000 / (this.state.peakSolarOutputPerformance / 100) * (this.state.solarPanelAreaNeededForOneMegawattHour))) })}
                     value={this.state.solarPanelsArea}
                 />
-                <Text>Napelemek területe:  {this.state.solarPanelsArea}  ha</Text>
+                <Text style={styles.sliderText}>Napelemek területe:  {this.renderHighlitedText(this.state.solarPanelsArea, 'ha')}</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -439,7 +534,7 @@ class RenewableSimulation extends Component {
                         this.setState({ solarPanelsArea })
                     }}
                 />
-                <Text>Egy megawattnyi napelem ára: {(this.state.priceForOneMegawattOfSolarPanelInMillions).toFixed(2)} millió forint</Text>
+                <Text style={styles.sliderText}>Egy megawattnyi napelem ára: {this.renderHighlitedText((this.state.priceForOneMegawattOfSolarPanelInMillions).toFixed(2), 'millió forint')}</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -453,7 +548,7 @@ class RenewableSimulation extends Component {
                     }}
 
                 />
-                <Text>Napelemek hatékonysági foka:  {(this.state.peakSolarOutputPerformance).toFixed(0)} %</Text>
+                <Text style={styles.sliderText}>Napelemek hatékonysági foka:  <Text style={{ color: 'red' }}>{(this.state.peakSolarOutputPerformance).toFixed(0)} %</Text></Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -469,6 +564,8 @@ class RenewableSimulation extends Component {
                 />
                 {this.renderSolarPanelInfos()}
 
+                <View style={styles.divisionLine}></View>
+
             </>)
         }
     }
@@ -476,9 +573,11 @@ class RenewableSimulation extends Component {
     renderSolarPanelInfos() {
         if (this.state.areSolarPanelOptionsVisible) {
             return (<>
-                <Text>Napelem Mgw: {this.state.solarPanelsMegawatt}</Text>
-                <Text>Napenergia ára: {this.state.solarPanelsPrice} milliárd forint</Text>
-                <Text>A napenergia {this.state.houseHoldsPoweredBySolar} háztartást lát el</Text>
+                <View style={styles.renewableInfos}>
+                    <Text>Napelem Mgw: <Text style={{ fontWeight: 'bold' }}>{this.state.solarPanelsMegawatt}</Text></Text>
+                    <Text>Napenergia ára:  <Text style={{ fontWeight: 'bold' }}>{this.state.solarPanelsPrice} milliárd forint</Text></Text>
+                    <Text>A napenergia  <Text style={{ fontWeight: 'bold' }}>{this.state.houseHoldsPoweredBySolar} háztartást lát el</Text></Text>
+                </View>
             </>)
         }
     }
@@ -492,7 +591,7 @@ class RenewableSimulation extends Component {
                     onChangeText={(windMillsArea) => this.setState({ windMillsArea: this.state.windMillsMinimumValue + Math.ceil((windMillsArea * this.state.averageDailyHouseholdConsumptionInKW / 1000 / (this.state.peakWindOutputPerformance / 100) * (this.state.windMillAreaNeededForOneMegawattHour))) })}
                     value={this.state.windMillsArea}
                 />
-                <Text>Szélerőművek területe:  {this.state.windMillsArea}  ha</Text>
+                <Text style={styles.sliderText}>Szélerőművek területe:  {this.renderHighlitedText(this.state.windMillsArea, 'ha')}</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -503,7 +602,7 @@ class RenewableSimulation extends Component {
                     value={this.state.windMillsArea}
                     onValueChange={windMillsArea => this.setState({ windMillsArea })}
                 />
-                <Text>Egy megawattnyi szélerőmű ára: {(this.state.priceForOneMegawattOfWindPowerInMillions).toFixed(2)} millió forint</Text>
+                <Text style={styles.sliderText}>Egy megawattnyi szélerőmű ára: {this.renderHighlitedText((this.state.priceForOneMegawattOfWindPowerInMillions).toFixed(2), 'millió forint')}</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -517,7 +616,7 @@ class RenewableSimulation extends Component {
                     }}
 
                 />
-                <Text>Szélerőművek hatékonysági foka:  {(this.state.peakWindOutputPerformance).toFixed(0)} %</Text>
+                <Text style={styles.sliderText}>Szélerőművek hatékonysági foka:  <Text style={{ color: 'red' }}>{(this.state.peakWindOutputPerformance).toFixed(0)} %</Text></Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -534,6 +633,8 @@ class RenewableSimulation extends Component {
 
                 {this.renderWindMillInfos()}
 
+                <View style={styles.divisionLine}></View>
+
             </>)
         }
 
@@ -542,9 +643,11 @@ class RenewableSimulation extends Component {
     renderWindMillInfos() {
         if (this.state.areWindmillOptionsVisible) {
             return (<>
-                <Text>Szélerőmű Mgw: {this.state.windMillsMegawatt}</Text>
-                <Text>Szélerőmű ára: {this.state.windMillsPrice} milliárd forint</Text>
-                <Text>A szélerőmű {this.state.houseHoldsPoweredByWindMill} háztartást lát el</Text>
+                <View style={styles.renewableInfos}>
+                    <Text>Szélerőmű Mgw: <Text style={{ fontWeight: 'bold' }}>{this.state.windMillsMegawatt}</Text></Text>
+                    <Text>Szélerőmű ára: <Text style={{ fontWeight: 'bold' }}>{this.state.windMillsPrice} milliárd forint</Text></Text>
+                    <Text>A szélerőmű <Text style={{ fontWeight: 'bold' }}>{this.state.houseHoldsPoweredByWindMill} háztartást lát el</Text></Text>
+                </View>
             </>)
         }
     }
@@ -559,7 +662,7 @@ class RenewableSimulation extends Component {
                     onChangeText={(biomassArea) => this.setState({ biomassArea: this.state.biomassMinimumValue + Math.ceil((biomassArea * this.state.averageDailyHouseholdConsumptionInKW / 1000 / (this.state.peakBiomassOutputPerformance / 100) * (this.state.biomassAreaNeededForOneMegawattHour))) })}
                     value={this.state.biomassArea}
                 />
-                <Text>Biomassza területe:  {this.state.biomassArea}  ha</Text>
+                <Text style={styles.sliderText}>Biomassza területe:  {this.renderHighlitedText(this.state.biomassArea, 'ha')}</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -570,7 +673,7 @@ class RenewableSimulation extends Component {
                     value={this.state.biomassArea}
                     onValueChange={biomassArea => this.setState({ biomassArea })}
                 />
-                <Text>Egy megawattnyi biomassza ára: {(this.state.priceForOneMegawattOfBiomass).toFixed(2)} millió forint</Text>
+                <Text style={styles.sliderText}>Egy megawattnyi biomassza ára: {this.renderHighlitedText((this.state.priceForOneMegawattOfBiomass).toFixed(2), 'millió forint')}</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -587,6 +690,8 @@ class RenewableSimulation extends Component {
 
                 {this.renderBiomassInfos()}
 
+                <View style={styles.divisionLine}></View>
+
             </>)
         }
 
@@ -595,9 +700,11 @@ class RenewableSimulation extends Component {
     renderBiomassInfos() {
         if (this.state.areBiomassOptionsVisible) {
             return (<>
-                <Text>Biomassza Mgw: {this.state.biomassMegawatt}</Text>
-                <Text>Biomassza ára: {this.state.biomassPrice} milliárd forint</Text>
-                <Text>A biomassza {this.state.houseHoldsPoweredByBiomass} háztartást lát el</Text>
+                <View style={styles.renewableInfos}>
+                    <Text>Biomassza Mgw: <Text style={{ fontWeight: 'bold' }}>{this.state.biomassMegawatt}</Text></Text>
+                    <Text>Biomassza ára: <Text style={{ fontWeight: 'bold' }}>{this.state.biomassPrice} milliárd forint</Text></Text>
+                    <Text>A biomassza <Text style={{ fontWeight: 'bold' }}>{this.state.houseHoldsPoweredByBiomass} háztartást lát el</Text></Text>
+                </View>
             </>)
         }
     }
@@ -606,7 +713,8 @@ class RenewableSimulation extends Component {
         if (this.state.calculateBatteryPriceToo) {
             return (
                 <>
-                    <Text>Hány napig szeretné tárolni az áramot? {this.state.numberOfDaysForBatteryStorage}</Text>
+                    <Text style={{ fontWeight: 'bold', padding: 15 }}>Hány napig szeretné tárolni az áramot?</Text>
+                    <Text style={{ textAlign: 'center' }}>{this.state.numberOfDaysForBatteryStorage}</Text>
                     <Slider
                         style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                         step={1}
@@ -630,9 +738,11 @@ class RenewableSimulation extends Component {
         if (this.state.calculateBatteryPriceToo) {
             return (
                 <>
-                    <Text>Ennyi mgwh akkumulátor
-                    kell a tároláshoz: {batteryStorage.toFixed(2)}</Text>
-                    <Text>Ennek az ára: {(this.state.batteryPriceForOneMegawattOfElectricity * batteryStorage / 1000).toFixed(4)} milliárd forint</Text>
+                    <View style={styles.batteryInfos}>
+                        <Text>Ennyi mgwh akkumulátor
+                    kell a tároláshoz: <Text style={{ fontWeight: 'bold' }}>{batteryStorage.toFixed(2)}</Text></Text>
+                        <Text>Ennek az ára: <Text style={{ fontWeight: 'bold' }}>{(this.state.batteryPriceForOneMegawattOfElectricity * batteryStorage / 1000).toFixed(4)} milliárd forint</Text></Text>
+                    </View>
                 </>
             )
         }
@@ -641,17 +751,21 @@ class RenewableSimulation extends Component {
 
     renderElectricCarsSlider() {
         return (<>
-            <Text>Elektromos autók száma:  {this.state.expectedNumberOfElectricCarsInHungary}</Text>
-            <Text>Autók mennyiségének növekedése évente:  {this.state.growthPercentageOfElectricCarsPerYear} %</Text>
+            <View style={styles.electricCarView}>
+                <Text style={{ fontWeight: 'bold' }}>Elektromos autók száma:  {this.state.expectedNumberOfElectricCarsInHungary}</Text>
+                <Image source={require('../assets/icons/electric-car.png')} style={styles.carIcon} />
+            </View>
+            <Text style={{ fontWeight: 'bold', padding: 15 }}>Autók mennyiségének növekedése évente: </Text>
+            <Text style={{ textAlign: 'center' }}>{this.state.growthPercentageOfElectricCarsPerYear} %</Text>
             <Slider
                 style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                 step={1}
                 minimumValue={1}
                 maximumValue={25}
-                minimumTrackTintColor="#2CE85F"
+                minimumTrackTintColor="#ffc300"
                 maximumTrackTintColor="#BB6A03"
                 value={this.state.growthPercentageOfElectricCarsPerYear}
-                onValueChange={growthPercentageOfElectricCarsPerYear => this.setState({ growthPercentageOfElectricCarsPerYear})}
+                onValueChange={growthPercentageOfElectricCarsPerYear => this.setState({ growthPercentageOfElectricCarsPerYear })}
             />
             <Text>Kiválasztott év:  {this.state.currentYearForElectricCarGrowthCalculation}</Text>
             <Slider
@@ -659,12 +773,12 @@ class RenewableSimulation extends Component {
                 step={1}
                 minimumValue={this.state.electricCarsYearMinimumValue}
                 maximumValue={this.state.electricCarsYearMaximumValue}
-                minimumTrackTintColor="#2CE85F"
+                minimumTrackTintColor="#9400d4"
                 maximumTrackTintColor="#BB6A03"
                 value={this.state.currentYearForElectricCarGrowthCalculation}
-                onValueChange={currentYearForElectricCarGrowthCalculation => this.setState({ currentYearForElectricCarGrowthCalculation})}
+                onValueChange={currentYearForElectricCarGrowthCalculation => this.setState({ currentYearForElectricCarGrowthCalculation })}
             />
-            <Text>Ennyi energiára van szükség az elektromos autók kiváltásához: {this.state.electricityNeededForElectricCars/1000} MGW</Text>
+            <Text style={{ padding: 10, fontWeight: 'bold' }}>Ennyi energiára van szükség az elektromos autók kiváltásához: {this.state.electricityNeededForElectricCars / 1000} Mgw</Text>
         </>)
 
     }
@@ -682,20 +796,51 @@ class RenewableSimulation extends Component {
 
         return (
             <>
-                <Text>A megújulók {(totalOccupiedArea / this.state.areaOfBalaton).toFixed(4)} Balatonnyi területet foglalnak el.</Text>
-                <Text>A megújulók {(totalHouseHoldsPoweredByRenewables / houseHoldsPoweredByPaks2).toFixed(2)} Paks2-nyi energiát váltanak ki </Text>
-                <Text>Évente {totalMegawatt * 1012} tonna CO2-vel csökkentik a kibocsájtást</Text>
-                <Text>Ez {parseInt(numberOfCarsCO2FreedWithRenewables)} autó kibocsájtását fedezi</Text>
-                
+                <View style={styles.fractionsView}>
+                    <Text style={{ fontWeight: 'bold' }}>A megújulók {(totalOccupiedArea / this.state.areaOfBalaton).toFixed(4)} Balatonnyi területet foglalnak el.</Text>
+                    <View style={styles.fractionFlexView}>
+                        <Image source={require('../assets/icons/balaton2.png')} style={styles.balatonIcon} />
+                        <Text style={styles.paksText}>X {(totalOccupiedArea / this.state.areaOfBalaton).toFixed(4)}</Text>
+                        <Text style={styles.balatonAreaText}>({(totalOccupiedArea / 100).toFixed(2)} km^2)</Text>
+                    </View>
+                    {/* <View style={styles.balatonDivisionLine} /> */}
+                </View>
+                <View style={styles.fractionsView}>
+                    <Text style={{ fontWeight: 'bold' }}>A megújulók {(totalHouseHoldsPoweredByRenewables / houseHoldsPoweredByPaks2).toFixed(2)} Paks2-nyi energiát váltanak ki </Text>
+                    <View style={styles.fractionFlexView}>
+                        <Image source={require('../assets/icons/power-plant.png')} style={styles.paksIcon} />
+                        <Text style={styles.paksText}>X {(totalHouseHoldsPoweredByRenewables / houseHoldsPoweredByPaks2).toFixed(2)}</Text>
+                    </View>
+                    {/* <View style={styles.paksDivisionLine} /> */}
+                </View>
+
+                <View>
+                    <Text>Megújulók által előállított összes Mgw: <Text style={{ fontWeight: 'bold' }}>{totalMegawatt}</Text></Text>
+                    <Text>Megújulók által ellátott háztartások: <Text style={{ fontWeight: 'bold' }}>{totalHouseHoldsPoweredByRenewables}</Text></Text>
+                </View>
+
+                <View style={styles.fractionsView}>
+                    <Text style={{ fontWeight: 'bold' }}>Évente {totalMegawatt * 1012} tonna CO2-vel csökkentik a kibocsájtást</Text>
+                    <Text>Ez {parseInt(numberOfCarsCO2FreedWithRenewables)} autó kibocsájtását fedezi</Text>
+                    <View style={styles.fractionFlexView}>
+                        <Image source={require('../assets/icons/co2-reduction.png')} style={styles.co2ReductionIcon} />
+                        <Text style={styles.co2ReductionText}>X {totalMegawatt * 1012} tonna</Text>
+                        <Image source={require('../assets/icons/car-reduction.png')} style={styles.carReductionIcon} />
+                        <Text style={styles.carReductionText}>X {numberOfCarsCO2FreedWithRenewables}</Text>
+                    </View>
+                    {/* <View style={styles.co2emissionDivisionLine} /> */}
+                </View>
+
             </>
         )
     }
 
     renderNetworkExpandPrices() {
         let totalPrice = (this.state.solarExpandPrice * this.state.solarPanelsMegawatt) + (this.state.windMillsExpandPrice * this.state.windMillsMegawatt)
+        let renewablesTotalPrice = parseFloat(this.state.solarPanelsPrice) + parseFloat(this.state.windMillsPrice) + parseFloat(this.state.biomassPrice)
         return (<>
-            <Text>A megújulókhoz {totalPrice / 1000} milliárdnyi hálózatfejlesztési összeget kell számolni</Text>
-
+            <Text>A megújulókhoz <Text style={{ fontWeight: 'bold' }}>{parseFloat(totalPrice / 1000).toFixed(3)} milliárdnyi </Text> hálózatfejlesztési összeget kell számolni</Text>
+            <Text>A megújulók összesen <Text style={{ fontWeight: 'bold' }}>{parseFloat(renewablesTotalPrice).toFixed(3)} milliárd</Text> forintba kerülnek</Text>
         </>)
 
     }
@@ -718,34 +863,42 @@ class RenewableSimulation extends Component {
 
                 {this.renderBiomassSliders()}
 
-
-                <Text>Háztartások átlagos napi energiaigénye:  {(this.state.averageDailyHouseholdConsumptionInKW).toFixed(2)} KW ({this.state.dailyConsumptioninKwh} kwh)</Text>
-                <Slider
-                    style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
-                    step={0.1}
-                    minimumValue={0.1}
-                    maximumValue={15}
-                    minimumTrackTintColor="#2CE85F"
-                    maximumTrackTintColor="#BB6A03"
-                    value={this.state.averageDailyHouseholdConsumptionInKW}
-                    onValueChange={averageDailyHouseholdConsumptionInKW => {
-                        this.setState({ averageDailyHouseholdConsumptionInKW })
-                    }}
-
-                />
-
-                <CheckBox
-                    style={{ flex: 1, padding: 10 }}
-                    onClick={() => {
-                        this.setState({
-                            calculateBatteryPriceToo: !this.state.calculateBatteryPriceToo
-                        })
-                    }}
-                    isChecked={this.state.calculateBatteryPriceToo}
-                    leftText={"Számoljunk-e akkumulátorpakkokkal is?"}
-                />
+                <View style={styles.averageDailyConsumption}>
+                    <Text style={{ fontWeight: 'bold' }}>Háztartások átlagos napi energiaigénye:</Text>
+                    <Text style={{ textAlign: 'center' }}>{this.state.dailyConsumptioninKwh} KWh ({(this.state.averageDailyHouseholdConsumptionInKW).toFixed(2)} KW)</Text>
+                    <Slider
+                        style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
+                        step={0.1}
+                        minimumValue={0.1}
+                        maximumValue={15}
+                        minimumTrackTintColor="#C70039"
+                        maximumTrackTintColor="#cf9e00"
+                        value={this.state.averageDailyHouseholdConsumptionInKW}
+                        onValueChange={averageDailyHouseholdConsumptionInKW => {
+                            this.setState({ averageDailyHouseholdConsumptionInKW })
+                        }}
+                    />
+                </View>
+                <View style={styles.flexView}>
+                    <Image source={require('../assets/icons/battery.png')} style={styles.batteryIcon} />
+                    <CheckBox
+                        style={{ flex: 8, padding: 5 }}
+                        onClick={() => {
+                            this.setState({
+                                calculateBatteryPriceToo: !this.state.calculateBatteryPriceToo
+                            })
+                        }}
+                        isChecked={this.state.calculateBatteryPriceToo}
+                        leftText={"Számoljunk-e akkumulátorpakkokkal is?"}
+                        leftTextStyle={{ fontWeight: 'bold', marginLeft: 30 }}
+                    />
+                </View>
 
                 {this.renderBatteryStorageSlider()}
+
+                {this.renderBatteryStorageInfos()}
+
+                <View style={styles.divisionLine}></View>
 
                 {this.renderElectricCarsSlider()}
 
@@ -760,8 +913,204 @@ class RenewableSimulation extends Component {
 
 const styles = StyleSheet.create({
     menuBar: {
+        flex: 1,
+        fontWeight: 'bold',
+        height: 100,
+        flexDirection: 'row',
+        backgroundColor: '#9c3b6e'
+    },
+    menuText: {
+        color: 'white'
+    },
+    sliderText: {
+        padding: 5,
         fontWeight: 'bold'
+    },
+    highlitedText: {
+        color: '#c27400'
+    },
+    divisionLine: {
+        borderBottomWidth: 3
+    },
+    renewableInfos: {
+        alignItems: 'center',
+        paddingTop: 5,
+        paddingBottom: 15,
+        backgroundColor: '#ffb997'
+    },
+    averageDailyConsumption: {
+        padding: 10
+    },
+    batteryInfos: {
+        alignItems: 'center',
+        paddingTop: 5,
+        paddingBottom: 10,
+        backgroundColor: '#3a9488'
+    },
+    electricCarView: {
+        padding: 10,
+        backgroundColor: '#ced6d5',
+        flex: 1,
+        flexDirection: 'row'
+    },
+    icon: {
+        width: 40,
+        height: 40,
+        marginLeft: 50,
+        marginTop: 25,
+        // position: 'absolute'
+        flex: 1
+    },
+    batteryIcon: {
+        width: 40,
+        height: 40,
+        marginLeft: '2%',
+        marginTop: '2%',
+        // position: 'absolute'
+        flex: 1
+    },
+    flexView: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+    carIcon: {
+        // position: 'absolute',
+        width: 25,
+        height: 25,
+        marginLeft: 5,
+        flex: 1,
+        resizeMode: 'contain'
+    },
+    summaryView: {
+        marginTop: 20,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    summaryButton: {
+        backgroundColor: '#ffc108',
+        width: '50%',
+        borderRadius: 20,
+        paddingTop: 5,
+        paddingBottom: 5,
+    },
+    summaryText: {
+        fontWeight: 'bold',
+        color: 'white',
+        textAlign: 'center'
+    },
+    fractionsView: {
+        alignItems: 'center',
+        padding: 5,
+        marginTop: 10,
+    },
+    fractionDivisionLine: {
+        borderBottomWidth: 5,
+        borderRadius: 10,
+        borderBottomColor: '#9fe37f',
+        width: '70%',
+        alignSelf: 'center',
+        marginBottom: 10,
+        marginTop: 10
+    },
+    paksDivisionLine: {
+        borderBottomWidth: 5,
+        borderRadius: 10,
+        borderBottomColor: '#9fe37f',
+        width: '70%',
+        alignSelf: 'center',
+        marginBottom: 10,
+        marginTop: 30
+    },
+    balatonDivisionLine: {
+        borderBottomWidth: 5,
+        borderRadius: 10,
+        borderBottomColor: '#9fe37f',
+        width: '70%',
+        alignSelf: 'center',
+        marginBottom: 10,
+        marginTop: 1
+    },
+    co2emissionDivisionLine: {
+        borderBottomWidth: 5,
+        borderRadius: 10,
+        borderBottomColor: '#9fe37f',
+        width: '70%',
+        alignSelf: 'center',
+        marginBottom: 10,
+        marginTop: 40
+    },
+    fractionFlexView: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+        marginTop: 50,
+    },
+    paksIcon: {
+        flex: 1,
+        width: 80,
+        height: 80,
+        marginBottom: 30,
+        resizeMode: 'contain'
+    },
+    paksText: {
+        flex: 1,
+        fontWeight: 'bold',
+        fontSize: 23
+    },
+    balatonAreaText: {
+        fontSize: 14,
+        flex: 1,
+        fontWeight: 'bold'
+    },
+    balatonIcon: {
+        flex: 1,
+        width: 120,
+        height: 100,
+        marginBottom: 30,
+        resizeMode: 'contain'
+    },
+    co2ReductionIcon: {
+        flex: 1,
+        width: 60,
+        height: 60,
+        marginBottom: 30,
+        resizeMode: 'contain'
+    },
+    co2ReductionText: {
+        fontWeight: 'bold',
+        flex: 1
+    },
+    carReductionIcon: {
+        flex: 1,
+        width: 60,
+        height: 60,
+        marginBottom: 15,
+        resizeMode: 'contain'
+    },
+    carReductionText: {
+        fontWeight: 'bold',
+        flex: 1
+    },
+    backModalButton: {
+        width: '100%',
+        backgroundColor: '#0a83a8'
+    },
+    backModalButtonText: {
+        padding: 25,
+        marginLeft: '10%',
+        color: 'white'
     }
 })
+
+const chartConfig = {
+    backgroundGradientFrom: "#1E2923",
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientTo: "#08130D",
+    backgroundGradientToOpacity: 0.5,
+    color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+    strokeWidth: 2, // optional, default 3
+    barPercentage: 0.5
+};
 
 export default RenewableSimulation

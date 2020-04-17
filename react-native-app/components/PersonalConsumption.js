@@ -7,12 +7,19 @@ import {
     Picker,
     TextInput,
     StyleSheet,
-    Button
+    Button,
+    ImageBackground,
+    Image,
+    TouchableHighlight
 } from 'react-native';
 
 import CheckBox from 'react-native-check-box'
 import Slider from '@react-native-community/slider';
 
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
+import { faTv, faMugHot } from '@fortawesome/free-solid-svg-icons'
+
+const kwhPrice = 38
 
 //Erre azért ráférne egy NAGY refaktorálás, mert minden résznek külön létrehoztam checkboxot meg pickert meg stb, és lehetett volna egy templatet készíteni
 class PersonalConsumption extends Component {
@@ -112,18 +119,30 @@ class PersonalConsumption extends Component {
             doesPersonGoToWorkWithCar: true,
             isGoingToWorkPossibleWithPublicTransport: false,
 
-            workPlaceDistanceFromHome:1
+            workPlaceDistanceFromHome: 1,
+            airConditionerConsumption: 1500,
+            normalHeaterConsumption: 1200,
+            infraredHeaterConsumption: 500,
+
+            areDataSaved: false
 
 
 
 
         }
     }
+    getSaveButtonColor() {
+        if (!this.state.areDataSaved) {
+            return 'red'
+        } else {
+            return "#66ff99"
+        }
+    }
 
     handleButtonPressing() {
         let booleanDataPayload = {
             doesHouseholdHaveInfraredHeater: this.state.doesHouseHoldHaveInfraredHeater,
-            isDarModeUsed: this.state.isDarModeUsed,
+            isDarkModeUsed: this.state.isDarModeUsed,
             doesPersonBuyFoodForMovie: this.state.doesPersonBuyFoodForMovie,
             doesPersonBuySecondHandClothesToo: this.state.doesPersonBuySeconHandClothesToo,
             doesPersonBuySecondHandPhonesToo: this.state.doesPersonBuySeconHandPhonesToo,
@@ -145,11 +164,12 @@ class PersonalConsumption extends Component {
             yearlyDistanceTravelledWithCar: this.state.yearlyDistanceTravelledWithCar,
             personsClothesBuyingHabit: this.state.presonsClothesBuyingHabit,
             personsPhoneBuyingHabit: this.state.personsPhoneBuyingHabit,
-            workPlaceDistanceFromHome:this.state.workPlaceDistanceFromHome
+            workPlaceDistanceFromHome: this.state.workPlaceDistanceFromHome
 
         }
 
         this.props.personalConsumptionPageDataCallback(this.state.foodConsumptions, booleanDataPayload, this.state.plasticConsumptions, otherDataPayload)
+        this.setState({ areDataSaved: true })
 
     }
 
@@ -173,11 +193,12 @@ class PersonalConsumption extends Component {
                     break;
             }
             return (<>
-                <Text>Heti fogyasztás: {sliderValue} kg</Text>
+
+                <Text style={styles.meatSliderText}>Heti fogyasztás: {sliderValue} kg</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={0.1}
-                    minimumValue={0.1}
+                    minimumValue={0}
                     maximumValue={4}
                     minimumTrackTintColor="#2CE85F"
                     maximumTrackTintColor="#BB6A03"
@@ -267,15 +288,39 @@ class PersonalConsumption extends Component {
     renderDisplayConsumption(displayType) {
         if (displayType === "TV") {
             return (<>
-                <Text>{this.state.tvConsumption} Watt</Text>
+                <View style={styles.consumptionSection}>
+                    <Text style={styles.consumptionText}>Napi fogyasztása: <Text style={styles.consumptionHighlitedText}>{this.state.tvConsumption} Wh</Text></Text>
+                    <Text style={styles.consumptionText}>Ez naponta <Text style={styles.consumptionHighlitedText}>{parseFloat(this.state.tvConsumption / 1000 * kwhPrice).toFixed(2)} Ft</Text></Text>
+                    <Text style={styles.consumptionText}>Évente <Text style={styles.consumptionHighlitedText}>{parseInt(this.state.tvConsumption / 1000 * 365 * kwhPrice)} Ft</Text></Text>
+                </View>
             </>)
         } else {
             return (<>
-                <Text>{this.props.pcConsumptionData.hardwareDailyUseInHours} óra alatt {this.state.monitorConsumption} Watt-ot fogyaszt</Text>
+                <View style={styles.consumptionSection}>
+                    <Text style={styles.consumptionText}>Monitor fogyasztása: {this.props.pcConsumptionData.hardwareDailyUseInHours} óra alatt <Text style={styles.consumptionHighlitedText}>{this.state.monitorConsumption} Wh</Text></Text>
+                    <Text style={styles.consumptionText}>Naponta: <Text style={styles.consumptionHighlitedText}>{parseFloat(this.state.monitorConsumption / 1000 * kwhPrice).toFixed(2)} Ft</Text></Text>
+                    <Text style={styles.consumptionText}>Évente: <Text style={styles.consumptionHighlitedText}>{parseFloat(this.state.monitorConsumption / 1000 * 365 * kwhPrice).toFixed(2)} Ft</Text></Text>
+                </View>
             </>)
         }
+    }
 
-
+    renderAirConditionerAndHeaterConsumption() {
+        let heaterConsumption = this.state.doesHouseHoldHaveInfraredHeater ? this.state.infraredHeaterConsumption : this.state.normalHeaterConsumption
+        return (<>
+            <View style={styles.airConditionerHeaterConsumptionSection}>
+                <View style={styles.airConditionerHeaterConsumptionPart}>
+                    <Text style={styles.consumptionText}>Légkondi átlag napi fogyasztás: <Text style={styles.consumptionHighlitedText}>{this.state.airConditionerHoursUsedADay * this.state.airConditionerConsumption} Wh</Text></Text>
+                    <Text style={styles.consumptionText}>Naponta ez <Text style={styles.consumptionHighlitedText}>{parseFloat(this.state.airConditionerHoursUsedADay * this.state.airConditionerConsumption / 1000 * kwhPrice).toFixed(2)} Ft</Text></Text>
+                    <Text style={styles.consumptionText}>Évente <Text style={styles.consumptionHighlitedText}>{parseFloat(this.state.airConditionerHoursUsedADay * this.state.airConditionersDaysUsedAYear * this.state.airConditionerConsumption / 1000 * kwhPrice).toFixed(2)} Ft</Text></Text>
+                </View>
+                <View style={styles.airConditionerHeaterConsumptionPart}>
+                    <Text style={styles.consumptionText}>Hősugárzó átlag napi fogyasztás: <Text style={styles.consumptionHighlitedText}>{this.state.heaterHoursUsedADay * heaterConsumption} Wh</Text></Text>
+                    <Text style={styles.consumptionText}>Naponta ez <Text style={styles.consumptionHighlitedText}>{parseFloat(this.state.heaterHoursUsedADay * heaterConsumption / 1000 * kwhPrice).toFixed(2)} Ft</Text></Text>
+                    <Text style={styles.consumptionText}>Évente <Text style={styles.consumptionHighlitedText}>{parseFloat(this.state.heaterHoursUsedADay * this.state.heaterDaysUsedAYear * heaterConsumption / 1000 * kwhPrice).toFixed(2)} Ft</Text></Text>
+                </View>
+            </View>
+        </>)
     }
 
     getDisplayMultiplier(displayType) {
@@ -307,7 +352,10 @@ class PersonalConsumption extends Component {
     loadTvOptions() {
         if (this.state.areTvOptionsChecked) {
             return (<>
-                <Text>Milyen típusú TV-je van? {this.state.selectedTvType}</Text>
+                <View style={styles.questionSection}>
+                    <Text style={styles.questionText}>Milyen típusú TV-je van?</Text>
+                    <FontAwesomeIcon style={styles.icon} icon={faTv} size={iconSize} />
+                </View>
                 <Picker
                     key="TV_Típus"
                     selectedValue={this.state.selectedTvType}
@@ -321,7 +369,8 @@ class PersonalConsumption extends Component {
                 </Picker>
 
 
-                <Text>Hány colos TV-je van?   {this.state.selectedTvSize}"</Text>
+                <Text style={styles.questionText}>Hány colos TV-je van?</Text>
+                <Text style={styles.infoText}>{this.state.selectedTvSize}"</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -334,6 +383,7 @@ class PersonalConsumption extends Component {
                         this.setState({ selectedTvSize })
                     }}
                 />
+                <Text style={styles.questionText}>Naponta átlag mennyit nézi?</Text>
                 <Picker
                     key="tvConsumptionInHours"
                     selectedValue={this.state.averageDailyTvHoursWatched}
@@ -346,6 +396,7 @@ class PersonalConsumption extends Component {
                     ))}
                 </Picker>
                 {this.renderDisplayConsumption("TV")}
+                <View style={styles.divisionLine} />
 
             </>)
         }
@@ -356,8 +407,10 @@ class PersonalConsumption extends Component {
     loadMonitorOptions() {
         if (this.props.pcConsumptionData.hardwareDailyUseInHours !== 0) {
             return (<>
-
-                <Text>Hány colos monitorja van?   {this.state.selectedMonitorSize}"</Text>
+                <View style={styles.questionSection}>
+                    <Text style={styles.questionText}>Hány colos monitorja van?</Text>
+                </View>
+                <Text style={styles.infoText}>{this.state.selectedMonitorSize}"</Text>
                 <Slider
                     style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                     step={1}
@@ -371,7 +424,7 @@ class PersonalConsumption extends Component {
                     }}
                 />
                 <CheckBox
-                    style={styles.checkboxStyle}
+                    style={styles.normalCheckboxStyle}
                     onClick={() => {
                         this.setState({
                             isDarModeUsed: !this.state.isDarModeUsed
@@ -390,60 +443,91 @@ class PersonalConsumption extends Component {
     loadMeatConsumptionDatas() {
         if (!this.state.isPersonVegetarian) {
             return (<>
-                <Text>Az alábbi húsok közül miből szokott fogyasztani?</Text>
-
-                <CheckBox
-                    style={styles.meatCheckboxStyle}
-                    onClick={() => {
-                        this.setState({
-                            doesPersonConsumeBeef: !this.state.doesPersonConsumeBeef
-                        })
-                    }}
-                    isChecked={this.state.doesPersonConsumeBeef}
-                    leftText={"Marha"}
-                />
+                <View style={styles.questionSection}>
+                    <Text style={styles.questionText}>Az alábbi húsok közül miből szokott fogyasztani?</Text>
+                </View>
+                <View style={styles.meatSectionRow}>
+                    <View style={styles.meatIcon}>
+                        <Image source={require('../assets/icons/beef.png')} style={styles.customIcon} />
+                    </View>
+                    <View style={styles.meatElement}>
+                        <CheckBox
+                            style={styles.meatCheckboxStyle}
+                            onClick={() => {
+                                this.setState({
+                                    doesPersonConsumeBeef: !this.state.doesPersonConsumeBeef
+                                })
+                            }}
+                            isChecked={this.state.doesPersonConsumeBeef}
+                            leftText={"Marha"}
+                        />
+                    </View>
+                </View>
                 {this.loadMeatSlider(this.state.doesPersonConsumeBeef, "BEEF")}
 
-                <CheckBox
-                    style={styles.meatCheckboxStyle}
-                    onClick={() => {
-                        this.setState({
-                            doesPersonConsumeLamb: !this.state.doesPersonConsumeLamb
-                        })
-                    }}
-                    isChecked={this.state.doesPersonConsumeLamb}
-                    leftText={"Bárány"}
-                />
+                <View style={styles.meatSectionRow}>
+                    <View style={styles.meatIcon}>
+                        <Image source={require('../assets/icons/lamb.png')} style={styles.customIcon} />
+                    </View>
+                    <View style={styles.meatElement}>
+                        <CheckBox
+                            style={styles.meatCheckboxStyle}
+                            onClick={() => {
+                                this.setState({
+                                    doesPersonConsumeLamb: !this.state.doesPersonConsumeLamb
+                                })
+                            }}
+                            isChecked={this.state.doesPersonConsumeLamb}
+                            leftText={"Bárány"}
+                        />
+                    </View>
+                </View>
 
                 {this.loadMeatSlider(this.state.doesPersonConsumeLamb, "LAMB")}
 
-                <CheckBox
-                    style={styles.meatCheckboxStyle}
-                    onClick={() => {
-                        this.setState({
-                            doesPersonConsumePork: !this.state.doesPersonConsumePork
-                        })
-                    }}
-                    isChecked={this.state.doesPersonConsumePork}
-                    leftText={"Sertés"}
-                />
+                <View style={styles.meatSectionRow}>
+                    <View style={styles.meatIcon}>
+                        <Image source={require('../assets/icons/pork.png')} style={styles.customIcon} />
+                    </View>
+                    <View style={styles.meatElement}>
+                        <CheckBox
+                            style={styles.meatCheckboxStyle}
+                            onClick={() => {
+                                this.setState({
+                                    doesPersonConsumePork: !this.state.doesPersonConsumePork
+                                })
+                            }}
+                            isChecked={this.state.doesPersonConsumePork}
+                            leftText={"Sertés"}
+                        />
+                    </View>
+                </View>
 
                 {this.loadMeatSlider(this.state.doesPersonConsumePork, "PORK")}
 
-                <CheckBox
-                    style={styles.meatCheckboxStyle}
-                    onClick={() => {
-                        this.setState({
-                            doesPersonConsumeChicken: !this.state.doesPersonConsumeChicken
-                        })
-                    }}
-                    isChecked={this.state.doesPersonConsumeChicken}
-                    leftText={"Csirke"}
-                />
+                <View style={styles.meatSectionRow}>
+                    <View style={styles.meatIcon}>
+                        <Image source={require('../assets//icons/chicken.png')} style={styles.customIcon} />
+                    </View>
+                    <View style={styles.meatElement}>
+                        <CheckBox
+                            style={styles.meatCheckboxStyle}
+                            onClick={() => {
+                                this.setState({
+                                    doesPersonConsumeChicken: !this.state.doesPersonConsumeChicken
+                                })
+                            }}
+                            isChecked={this.state.doesPersonConsumeChicken}
+                            leftText={"Csirke"}
+                        />
+                    </View>
+                </View>
 
                 {this.loadMeatSlider(this.state.doesPersonConsumeChicken, "CHICKEN")}
 
-                {this.loadEggConsumptionPicker()}
+                <View style={styles.pickerSection}>
+                    {this.loadEggConsumptionPicker()}
+                </View>
 
             </>)
         }
@@ -494,7 +578,10 @@ class PersonalConsumption extends Component {
     loadEggConsumptionPicker() {
         let consumptionDatas = { ...this.state.foodConsumptions }
         return (<>
-            <Text>Naponta hány tojást eszik meg átlagosan?</Text>
+            <View style={styles.pickerQuestion}>
+                <Text style={styles.pickerQuestionText}>Naponta hány tojást eszik meg átlagosan?</Text>
+                <Image source={require('../assets/icons/egg.png')} style={styles.custompPickerIcon} />
+            </View>
             <Picker
                 key="dailyEggConsumption"
                 selectedValue={consumptionDatas.Eggs}
@@ -515,47 +602,61 @@ class PersonalConsumption extends Component {
 
     loadPlasticPollutionOptions() {
         return (<>
-            <Text style={styles.consumptionsHeaderText}>Palackozott ital heti fogyasztás</Text>
-            <View style={styles.plasticConsumptionViewStyle}>
-                <Text>Kóla:</Text>
-                <TextInput
-                    style={styles.TextInputStyle}
-                    placeholder="palack"
-                    keyboardType="numeric"
-                    onChangeText={(number) => this.onChanged(number, "KOLA")}
-                    value={this.state.plasticConsumptions.BottledCola}
-                    maxLength={1}
-                />
-                <Text>Víz:</Text>
-                <TextInput
-                    style={styles.TextInputStyle}
-                    placeholder="palack"
-                    keyboardType="numeric"
-                    onChangeText={(number) => this.onChanged(number, "VIZ")}
-                    value={this.state.plasticConsumptions.BottledWater}
-                    maxLength={1}
-                />
+            <View style={styles.pickerQuestion}>
+                <Text style={styles.consumptionsHeaderText}>Palackozott ital heti fogyasztás</Text>
+                <Image source={require('../assets/icons/plastic-bottle.png')} style={styles.plasticIcon} />
             </View>
-            <Text style={styles.consumptionsHeaderText}>Élelmiszervásárlás</Text>
             <View style={styles.plasticConsumptionViewStyle}>
-                <Text style={{ flex: 3 }}>Heti vásárlás</Text>
-                <TextInput
-                    style={styles.TextInputStyle}
-                    placeholder="alkalom"
-                    keyboardType="numeric"
-                    onChangeText={(number) => this.setState({ weeklyGroceryShoppingsCount: number.replace(/[^0-9]/g, '') })}
-                    value={this.state.weeklyGroceryShoppingsCount}
-                    maxLength={1}
-                />
-                <Text style={{ flex: 3 }}>Egy alkalomkor vásárolt műanyag szatyrok:</Text>
-                <TextInput
-                    style={styles.TextInputStyle}
-                    placeholder="darab"
-                    keyboardType="numeric"
-                    onChangeText={(number) => this.onChanged(number, "SZATYOR")}
-                    value={this.state.plasticConsumptions.BottledWater}
-                    maxLength={1}
-                />
+                <View style={styles.flexView}>
+                    <Text style={{ textAlign: 'center' }}>Kóla:</Text>
+                    <TextInput
+                        style={styles.TextInputStyle}
+                        placeholder="palack"
+                        keyboardType="numeric"
+                        onChangeText={(number) => this.onChanged(number, "KOLA")}
+                        value={this.state.plasticConsumptions.BottledCola}
+                        maxLength={1}
+                    />
+                </View>
+                <View style={styles.flexView}>
+                    <Text style={{ textAlign: 'center' }}>Víz:</Text>
+                    <TextInput
+                        style={styles.TextInputStyle}
+                        placeholder="palack"
+                        keyboardType="numeric"
+                        onChangeText={(number) => this.onChanged(number, "VIZ")}
+                        value={this.state.plasticConsumptions.BottledWater}
+                        maxLength={1}
+                    />
+                </View>
+            </View>
+            <View style={styles.pickerQuestion}>
+                <Text style={styles.groceryHeaderText}>Élelmiszervásárlás</Text>
+                <Image source={require('../assets/icons/shopping.png')} style={styles.groceryIcon} />
+            </View>
+            <View style={styles.plasticConsumptionViewStyle}>
+                <View style={styles.flexView}>
+                    <Text style={{ textAlign: 'center', marginBottom: 20 }}>Heti vásárlás:</Text>
+                    <TextInput
+                        style={styles.groceryTextInputStyle}
+                        placeholder="alkalom"
+                        keyboardType="numeric"
+                        onChangeText={(number) => this.setState({ weeklyGroceryShoppingsCount: number.replace(/[^0-9]/g, '') })}
+                        value={this.state.weeklyGroceryShoppingsCount}
+                        maxLength={1}
+                    />
+                </View>
+                <View style={styles.flexView}>
+                    <Text style={{ textAlign: 'center' }}>Egy alkalomkor vásárolt műanyag szatyrok:</Text>
+                    <TextInput
+                        style={styles.groceryTextInputStyle}
+                        placeholder="darab"
+                        keyboardType="numeric"
+                        onChangeText={(number) => this.onChanged(number, "SZATYOR")}
+                        value={this.state.plasticConsumptions.ShoppingBag}
+                        maxLength={1}
+                    />
+                </View>
             </View>
 
             <CheckBox
@@ -566,7 +667,8 @@ class PersonalConsumption extends Component {
                     })
                 }}
                 isChecked={this.state.doesPersonGoToFastFoodRestaurants}
-                leftText={"Szokott gyorséttermekbe járni?"}
+                leftText={("Szokott gyorséttermekbe járni?").toUpperCase()}
+                leftTextStyle={styles.checkboxText}
             />
 
             {this.loadFastFoodOptions()}
@@ -579,7 +681,8 @@ class PersonalConsumption extends Component {
                     })
                 }}
                 isChecked={this.state.doesPersonGoToTheCinema}
-                leftText={"Szokott moziba járni?"}
+                leftText={("Szokott moziba járni?").toUpperCase()}
+                leftTextStyle={styles.checkboxText}
             />
 
             {this.loadMovieOptions()}
@@ -591,7 +694,7 @@ class PersonalConsumption extends Component {
     loadFastFoodOptions() {
         if (this.state.doesPersonGoToFastFoodRestaurants) {
             return (<>
-                <Text>Havonta hány alkalommal?</Text>
+                <Text style={styles.pickerQuestionText}>Havonta hány alkalommal?</Text>
                 <Picker
                     key="Etterembejaras"
                     selectedValue={this.state.monthlyFastFoodVisitCount}
@@ -610,7 +713,7 @@ class PersonalConsumption extends Component {
     loadMovieOptions() {
         if (this.state.doesPersonGoToTheCinema) {
             return (<>
-                <Text>Évente hány alkalommal?</Text>
+                <Text style={styles.pickerQuestionText}>Évente hány alkalommal?</Text>
                 <Picker
                     key="Mozibajaras"
                     selectedValue={this.state.yearlyCinemaVisitCount}
@@ -623,7 +726,7 @@ class PersonalConsumption extends Component {
                     )}
                 </Picker>
                 <CheckBox
-                    style={styles.checkboxStyle}
+                    style={styles.normalCheckboxStyle}
                     onClick={() => {
                         this.setState({
                             doesPersonBuyFoodForMovie: !this.state.doesPersonBuyFoodForMovie
@@ -632,6 +735,7 @@ class PersonalConsumption extends Component {
                     isChecked={this.state.doesPersonBuyFoodForMovie}
                     leftText={"Vásárol nasit a filmnézéshez?"}
                 />
+                <View style={styles.divisionLine}></View>
             </>)
         }
     }
@@ -660,33 +764,37 @@ class PersonalConsumption extends Component {
     loadAirConditionerAndHeaterOptions() {
         if (this.state.doesHouseholdHaveAirConditionerOrHeater) {
             return (<>
-                <Text>Légkondicionáló</Text>
-                <View style={styles.plasticConsumptionViewStyle}>
-                    <Text style={{ flex: 3 }}>Évente körülbelül hány napot használja?</Text>
-                    <TextInput
-                        style={styles.TextInputStyle}
-                        placeholder="nap"
-                        keyboardType="numeric"
-                        onChangeText={(number) =>
-                            this.setState({ airConditionersDaysUsedAYear: this.getConstrainedValue(number, 365) })
-                        }
-                        value={this.state.airConditionersDaysUsedAYear}
-                        maxLength={3}
-                    />
-                    <Text style={{ flex: 3 }}>Naponta körülbelül hány órát használja?</Text>
-                    <TextInput
-                        style={styles.TextInputStyle}
-                        placeholder="óra"
-                        keyboardType="numeric"
-                        onChangeText={(number) => this.setState({ airConditionerHoursUsedADay: this.getConstrainedValue(number, 24) })}
-                        value={this.state.airConditionerHoursUsedADay}
-                        maxLength={2}
-                    />
+                <Text style={styles.airConditionerHeaterSectionText}>Légkondicionáló</Text>
+                <View style={styles.airConditionerAndHeaterView}>
+                    <View style={styles.airConditionerHeaterSection}>
+                        <Text style={{ textAlign: 'center' }}>Évente körülbelül hány napot használja?</Text>
+                        <TextInput
+                            style={styles.TextInputStyle}
+                            placeholder="nap"
+                            keyboardType="numeric"
+                            onChangeText={(number) =>
+                                this.setState({ airConditionersDaysUsedAYear: this.getConstrainedValue(number, 365) })
+                            }
+                            value={this.state.airConditionersDaysUsedAYear}
+                            maxLength={3}
+                        />
+                    </View>
+                    <View style={styles.airConditionerHeaterSection}>
+                        <Text style={{ textAlign: 'center' }}>Naponta körülbelül hány órát használja?</Text>
+                        <TextInput
+                            style={styles.TextInputStyle}
+                            placeholder="óra"
+                            keyboardType="numeric"
+                            onChangeText={(number) => this.setState({ airConditionerHoursUsedADay: this.getConstrainedValue(number, 24) })}
+                            value={this.state.airConditionerHoursUsedADay}
+                            maxLength={2}
+                        />
+                    </View>
                 </View>
 
-                <Text>Hősugárzó</Text>
+                <Text style={styles.airConditionerHeaterSectionText}>Hősugárzó</Text>
                 <View style={styles.plasticConsumptionViewStyle}>
-                    <Text style={{ flex: 3 }}>Évente körülbelül hány napot használja?</Text>
+                    <Text style={{ flex: 3, textAlign: 'center' }}>Évente körülbelül hány napot használja?</Text>
                     <TextInput
                         style={styles.TextInputStyle}
                         placeholder="nap"
@@ -697,7 +805,7 @@ class PersonalConsumption extends Component {
                         value={this.state.heaterDaysUsedAYear}
                         maxLength={3}
                     />
-                    <Text style={{ flex: 3 }}>Naponta körülbelül hány órát használja?</Text>
+                    <Text style={{ flex: 3, textAlign: 'center' }}>Naponta körülbelül hány órát használja?</Text>
                     <TextInput
                         style={styles.TextInputStyle}
                         placeholder="óra"
@@ -708,7 +816,7 @@ class PersonalConsumption extends Component {
                     />
                 </View>
                 <CheckBox
-                    style={styles.checkboxStyle}
+                    style={styles.normalCheckboxStyle}
                     onClick={() => {
                         this.setState({
                             doesHouseHoldHaveInfraredHeater: !this.state.doesHouseHoldHaveInfraredHeater
@@ -718,13 +826,18 @@ class PersonalConsumption extends Component {
                     leftText={"A fűtőtest infrás?"}
                 />
 
+                {this.renderAirConditionerAndHeaterConsumption()}
+
             </>)
         }
     }
 
     loadClothesAndPhonesBuyingOptions() {
         return (<>
-            <Text>Milyen gyakran vásárol ÚJ ruhákat?</Text>
+            <View style={styles.flexTemplate}>
+                <Text style={styles.clothesText}>Milyen gyakran vásárol ÚJ ruhákat?</Text>
+                <Image source={require('../assets/icons/clothes.png')} style={styles.custompPickerIcon} />
+            </View>
             <Picker
                 key="ruhavasarlas"
                 selectedValue={this.state.presonsClothesBuyingHabit}
@@ -738,7 +851,7 @@ class PersonalConsumption extends Component {
             </Picker>
 
             <CheckBox
-                style={styles.checkboxStyle}
+                style={styles.normalCheckboxStyle}
                 onClick={() => {
                     this.setState({
                         doesPersonBuySeconHandClothesToo: !this.state.doesPersonBuySeconHandClothesToo
@@ -747,9 +860,13 @@ class PersonalConsumption extends Component {
                 isChecked={this.state.doesPersonBuySeconHandClothesToo}
                 leftText={"Használt ruhákat is szokott vásárolni?"}
             />
+            <View style={styles.divisionLine}></View>
 
 
-            <Text>Új telefont milyen gyakran vásárol?</Text>
+            <View style={styles.flexTemplate}>
+                <Text style={styles.clothesText}>Új telefont milyen gyakran vásárol?</Text>
+                <Image source={require('../assets/icons/smartphone.png')} style={styles.custompPickerIcon} />
+            </View>
             <Picker
                 key="telefonvasarlas"
                 selectedValue={this.state.personsPhoneBuyingHabit}
@@ -763,7 +880,7 @@ class PersonalConsumption extends Component {
             </Picker>
 
             <CheckBox
-                style={styles.checkboxStyle}
+                style={styles.normalCheckboxStyle}
                 onClick={() => {
                     this.setState({
                         doesPersonBuySecondHandPhonesToo: !this.state.doesPersonBuySeconHandPhonesToo
@@ -772,6 +889,7 @@ class PersonalConsumption extends Component {
                 isChecked={this.state.doesPersonBuySecondHandPhonesToo}
                 leftText={"Használt telefont is szokott vásárolni?"}
             />
+            <View style={styles.divisionLine}></View>
 
         </>)
     }
@@ -780,9 +898,9 @@ class PersonalConsumption extends Component {
         if (this.state.doesPersonOwnACar) {
             return (<>
                 <View style={styles.plasticConsumptionViewStyle}>
-                    <Text style={{ flex: 3 }}>Évente körülbelül hány ezer km-t utazik autóval?</Text>
+                    <Text style={{ flex: 3, paddingTop: 3 }}>Évente körülbelül hány ezer km-t utazik autóval?</Text>
                     <TextInput
-                        style={styles.TextInputStyle}
+                        style={styles.travellingTextInputStyle}
                         placeholder="km"
                         keyboardType="numeric"
                         onChangeText={(number) => this.setState({ yearlyDistanceTravelledWithCar: this.getConstrainedValue(number, 60) })}
@@ -792,7 +910,7 @@ class PersonalConsumption extends Component {
                 </View>
 
                 <CheckBox
-                    style={styles.checkboxStyle}
+                    style={styles.normalCheckboxStyle}
                     onClick={() => {
                         this.setState({
                             doesPersonHaveElectricCar: !this.state.doesPersonHaveElectricCar
@@ -811,7 +929,7 @@ class PersonalConsumption extends Component {
     loadWorkGoingOptions() {
         let publicTransportCheckBoxComponent =
             <CheckBox
-                style={styles.checkboxStyle}
+                style={styles.normalCheckboxStyle}
                 onClick={() => {
                     this.setState({
                         isGoingToWorkPossibleWithPublicTransport: !this.state.isGoingToWorkPossibleWithPublicTransport
@@ -821,7 +939,8 @@ class PersonalConsumption extends Component {
                 leftText={"Megoldható lenne tömegközlekedéssel és/vagy biciklivel a munkába járás?"}
             />
         let workPlaceDistanceComponent = <>
-            <Text>Hány kilométerre van a lakásától a munkahelye? {this.state.workPlaceDistanceFromHome} km</Text>
+            <Text style={styles.questionText}>Hány kilométerre van a lakásától a munkahelye?</Text>
+            <Text style={styles.infoText}>{this.state.workPlaceDistanceFromHome} km</Text>
             <Slider
                 style={{ width: Math.round(Dimensions.get('window').width) * 0.95, height: 40 }}
                 step={1}
@@ -834,13 +953,13 @@ class PersonalConsumption extends Component {
                     this.setState({ workPlaceDistanceFromHome })
                 }}
             />
-            </>
+        </>
 
 
         if (!this.state.doesPersonHaveElectricCar) {
             return (<>
                 <CheckBox
-                    style={styles.checkboxStyle}
+                    style={styles.normalCheckboxStyle}
                     onClick={() => {
                         this.setState({
                             doesPersonGoToWorkWithCar: !this.state.doesPersonGoToWorkWithCar
@@ -880,12 +999,16 @@ class PersonalConsumption extends Component {
                     })
                 }}
                 isChecked={this.state.areTvOptionsChecked}
-                leftText={"Szokott TV-zni, vagy TV-t használni?"}
+                leftText={("Szokott TV-zni, vagy TV-t használni?").toUpperCase()}
+                leftTextStyle={styles.checkboxText}
             />
+            <View style={styles.divisionLine} />
 
             {this.loadTvOptions()}
 
+
             {this.loadMonitorOptions()}
+            <View style={styles.divisionLine} />
 
             <CheckBox
                 style={styles.checkboxStyle}
@@ -895,10 +1018,12 @@ class PersonalConsumption extends Component {
                     })
                 }}
                 isChecked={this.state.doesHouseholdHaveAirConditionerOrHeater}
-                leftText={"Van az otthonában légkondicionáló és/vagy elektromos fűtőtest?"}
+                leftText={("Van az otthonában légkondicionáló   és/vagy elektromos fűtőtest?").toUpperCase()}
+                leftTextStyle={styles.checkboxText}
             />
 
             {this.loadAirConditionerAndHeaterOptions()}
+            <View style={styles.divisionLine} />
 
             <CheckBox
                 style={styles.checkboxStyle}
@@ -908,16 +1033,25 @@ class PersonalConsumption extends Component {
                     })
                 }}
                 isChecked={this.state.isPersonVegetarian}
-                leftText={"Vegetáriánus vagy vegán?"}
+                leftText={("Vegetáriánus vagy vegán?").toUpperCase()}
+                leftTextStyle={styles.checkboxText}
             />
 
             {this.loadMeatConsumptionDatas()}
 
-            <Text>Napi kávéfogyasztás</Text>
+            <View style={styles.pickerQuestion}>
+                <Text style={styles.pickerQuestionText}>Napi kávéfogyasztás</Text>
+                <Image source={require('../assets/icons/coffee.png')} style={styles.customCoffeeIcon} />
+            </View>
             {this.loadCoffeConsumptionPicker()}
 
-            <Text>Heti csokoládé fogyasztás</Text>
+            <View style={styles.pickerQuestion}>
+                <Text style={styles.pickerQuestionText}>Heti csokoládé fogyasztás</Text>
+                <Image source={require('../assets/icons/chocolate.png')} style={styles.customChocolateIcon} />
+            </View>
             {this.loadChocolateConsumptionPicker()}
+
+            <View style={styles.divisionLine}></View>
 
 
             {this.loadPlasticPollutionOptions()}
@@ -932,14 +1066,27 @@ class PersonalConsumption extends Component {
                     })
                 }}
                 isChecked={this.state.doesPersonOwnACar}
-                leftText={"Rendelkezik autóval?"}
+                leftText={("Rendelkezik autóval?").toUpperCase()}
+                leftTextStyle={styles.checkboxText}
             />
             {this.loadTravellingOptions()}
 
-            <Button
+            {/* <Button
                 title="Adatok mentése"
                 onPress={() => this.handleButtonPressing()}
-            />
+                color={this.getSaveButtonColor()}
+            /> */}
+
+            <View style={styles.saveButtonView}>
+                <TouchableHighlight
+                    onPress={() => {
+                        this.handleButtonPressing();
+                    }}
+                    style={this.state.areDataSaved ? styles.saveButton : styles.saveButtonDone}
+                >
+                    <Text style={styles.buttonText}>ADATOK MENTÉSE</Text>
+                </TouchableHighlight>
+            </View>
 
 
 
@@ -948,31 +1095,302 @@ class PersonalConsumption extends Component {
 
 }
 
+const iconSize = 23;
+
 const styles = StyleSheet.create({
     consumptionsHeaderText: {
-        textAlign: "center"
+        textAlign: "center",
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 5,
+        marginBottom: 10,
+        marginLeft: 50
+    },
+    groceryHeaderText: {
+        textAlign: "center",
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 5,
+        marginBottom: 10,
+        marginLeft: 110
+    },
+    clothesText: {
+        textAlign: "center",
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginTop: 5,
+        marginBottom: 10,
+        marginLeft: 20
     },
     plasticConsumptionViewStyle: {
         flex: 1,
-        flexDirection: "row"
+        flexDirection: "row",
+    },
+    flexView: {
+        flex: 1
     },
     TextInputStyle: {
         textAlign: 'center',
         height: 40,
+        width: '95%',
         borderRadius: 10,
         borderWidth: 2,
         borderColor: '#009688',
         marginBottom: 10,
-        flex: 1
+        flex: 1,
+        marginLeft: 3,
+        marginRight: 5
+    },
+    groceryTextInputStyle: {
+        textAlign: 'center',
+        height: 40,
+        width: '95%',
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#d6ac13',
+        marginBottom: 10,
+        flex: 1,
+        marginLeft: 3,
+        marginRight: 5
+    },
+    travellingTextInputStyle: {
+        textAlign: 'center',
+        height: 40,
+        width: '95%',
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#d67813',
+        marginBottom: 10,
+        flex: 1,
+        marginLeft: 3,
+        marginRight: 10,
+        marginTop: 5
+    },
+    normalCheckboxStyle: {
+        flex: 1,
+        padding: 10,
+        backgroundColor: '#e6e6e6'
     },
     checkboxStyle: {
         flex: 1,
+        padding: 10,
+        backgroundColor: '#2096f3',
+    },
+    meatCheckboxStyle: {
+        padding: 10,
+        paddingRight: 20
+    },
+    questionSection: {
+        flex: 1,
+        flexDirection: 'row',
+        backgroundColor: '#f2cece'
+    },
+    questionText: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: 16,
+        fontWeight: 'bold'
+    },
+    icon: {
+        marginTop: 2,
+        marginRight: 130,
+        flex: 1,
+        color: 'black',
+    },
+    questionIcon: {
+        marginLeft: 10,
+        paddingBottom: 5,
+    },
+    infoText: {
+        marginTop: 5,
+        textAlign: 'center'
+    },
+    // airConditionerHeaterConsumptionSection: {
+    //     flex: 1,
+    //     paddingTop: 5,
+    //     paddingBottom: 5,
+    //     backgroundColor: '#99ad9b',
+    //     flexDirection: 'row'
+    // },
+    airConditionerHeaterConsumptionSection: {
+        flex: 1,
+        flexDirection: 'row',
+
+        marginTop: 10,
+        marginBottom:10,
+        paddingTop: 5,
+        paddingBottom: 5,
+        // backgroundColor: '#d6d6d6',
+        backgroundColor: '#f0f0f0',
+        borderWidth:1,
+        borderColor:'grey',
+        borderRadius: 10,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 2,
+            height: 4,
+        },
+        shadowOpacity: 0.65,
+        shadowRadius: 3.84,
+        elevation: 5,
+        width: '100%',
+        alignSelf: 'center'
+    },
+    airConditionerHeaterConsumptionPart: {
+        flex: 1
+    },
+    // consumptionSection: {
+    //     paddingTop: 5,
+    //     paddingBottom: 5,
+    //     backgroundColor: '#99ad9b',
+    // },
+    consumptionSection: {
+        marginTop: 10,
+        marginBottom:10,
+        paddingTop: 5,
+        paddingBottom: 5,
+        // backgroundColor: '#d6d6d6',
+        backgroundColor: '#f0f0f0',
+        borderWidth:1,
+        borderColor:'grey',
+        borderRadius: 10,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 2,
+            height: 4,
+        },
+        shadowOpacity: 0.65,
+        shadowRadius: 3.84,
+        elevation: 5,
+        width: '95%',
+        alignSelf: 'center'
+    },
+    consumptionText: {
+        textAlign: 'center',
+    },
+    consumptionHighlitedText: {
+        fontWeight: 'bold'
+    },
+    divisionLine: {
+        borderBottomWidth: 1
+    },
+
+    airConditionerAndHeaterView: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+    airConditionerHeaterSection: {
+        flex: 1
+    },
+    airConditionerHeaterSectionText: {
+        fontWeight: 'bold',
+        marginTop: 5,
+        marginBottom: 5,
+        padding: 10,
+        fontSize: 16
+    },
+    checkboxText: {
+        color: 'white',
+        fontWeight: 'bold'
+    },
+    meatSectionRow: {
+        flex: 1,
+        flexDirection: 'row'
+    },
+    meatElement: {
+        flex: 2
+    },
+    meatIcon: {
+        flex: 0.1,
+        paddingLeft: 10,
+        paddingTop: 10,
+    },
+    customIcon: {
+        width: 25,
+        height: 25
+    },
+    custompPickerIcon: {
+        width: 25,
+        height: 25,
+        marginLeft: 15,
+    },
+    plasticIcon: {
+        width: 25,
+        height: 25,
+        marginLeft: 15,
+        marginTop: 5,
+        transform: [{
+            rotate: '45deg'
+        }]
+    },
+    groceryIcon: {
+        width: 25,
+        height: 25,
+        marginLeft: 15,
+        marginTop: 2
+    },
+    customCoffeeIcon: {
+        width: 20,
+        height: 20,
+        marginLeft: 15,
+    },
+    customChocolateIcon: {
+        width: 20,
+        height: 20,
+        marginLeft: 15,
+        transform: [{
+            rotate: '-45deg'
+        }]
+    },
+    meatSliderText: {
+        fontWeight: 'bold',
         padding: 10
     },
-    meatsCheckboxStyle: {
-        flex: 2,
-        padding: 10
-    }
+    pickerQuestion: {
+        flex: 1,
+        flexDirection: 'row'
+    },
+    pickerQuestionText: {
+        paddingLeft: 10,
+        fontWeight: 'bold',
+        fontSize: 14
+    },
+    pickerSection: {
+        paddingTop: 10
+    },
+    saveButton: {
+        backgroundColor: 'red'
+    },
+    flexTemplate: {
+        flex: 1,
+        flexDirection: 'row',
+        marginTop: 10
+    },
+    saveButtonView: {
+        marginTop: 20,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    saveButton: {
+        backgroundColor: 'green',
+        width: '50%',
+        borderRadius: 20,
+        paddingTop: 5,
+        paddingBottom: 5,
+    },
+    saveButtonDone: {
+        backgroundColor: 'red',
+        width: '50%',
+        borderRadius: 20,
+        paddingTop: 5,
+        paddingBottom: 5,
+    },
+    buttonText: {
+        fontWeight: 'bold',
+        color: 'white',
+        textAlign: 'center'
+    },
+
 });
 
 export default PersonalConsumption
