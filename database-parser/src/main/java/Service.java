@@ -253,7 +253,7 @@ public class Service {
     JSONArray createFoodPollutionList(){
         JSONArray foodPollutionJsonList = new JSONArray();
 
-        foodPollutionJsonList.add(new Food(1,"Beef",51,49).convertFoodToJson());
+        foodPollutionJsonList.add(new Food(1,"Beef",36,35).convertFoodToJson());
         foodPollutionJsonList.add(new Food(2,"Chocolate",34,0).convertFoodToJson());
         foodPollutionJsonList.add(new Food(3,"Coffee",29,0).convertFoodToJson());
         foodPollutionJsonList.add(new Food(4,"Lamb",14,26).convertFoodToJson());
