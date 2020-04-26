@@ -56,7 +56,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 //A felsőzsolcai naperőmű évente 20242 tonna CO2-vel csökkenti a kibocsájtást (MVM adatai) - 1kw 1 tonna CO2 évente
 //Magyarországon jelenleg (2020. 03. 03) 1144 megawattnyi napelempark van. Ez durván számolva akkor 2699 hektárnyi terület
 //1 megawatt egy évben kb 1.1 gigawattot termel.
-//A felsőzsolcai projekt 3 143 395 450 Ft-ba került, ebből kifolyólag ezt elosztva 20-al, 1 megawatt napelemre 157169772 Ft jön ki
+//A felsőzsolcai projekt 3 143 395 450 Ft-ba került, ebből kifolyólag ezt elosztva 20-al, 1 megawatt napelemre 157169772 Ft jön ki //UPDATE: Itt csak a támogatás összege volt a 3.1 milliárd forint
 //Viszont a Paksi 20.2 megawattos napelempark 9 milliárd volt, enyhe túlárazással. Itt körülbelül 400milliósra jön ki 1 megawatt napenergia
 
 //##############################  SZÉLERŐMŰVEK
@@ -658,8 +658,8 @@ class RenewableSimulation extends Component {
             return (<>
                 <TextInput
                     placeholder="Ellátott háztartások"
-
-                    onChangeText={(biomassArea) => this.setState({ biomassArea: this.state.biomassMinimumValue + Math.ceil((biomassArea * this.state.averageDailyHouseholdConsumptionInKW / 1000 / (this.state.peakBiomassOutputPerformance / 100) * (this.state.biomassAreaNeededForOneMegawattHour))) })}
+                    onChangeText={(biomassArea) => this.setState({ biomassArea: this.state.biomassMinimumValue + Math.ceil((biomassArea * this.state.averageDailyHouseholdConsumptionInKW / 1000 / (this.state.peakBiomassOutPutPerformance / 100) * (this.state.biomassAreaNeededForOneMegawattHour))) })}
+                    // onChangeText={(biomassArea) => this.setState({ biomassArea: this.state.biomassMinimumValue + Math.ceil((biomassArea * this.state.averageDailyHouseholdConsumptionInKW / 1000 / (this.state.peakBiomassOutputPerformance / 100) * (this.state.biomassAreaNeededForOneMegawattHour))) })}
                     value={this.state.biomassArea}
                 />
                 <Text style={styles.sliderText}>Biomassza területe:  {this.renderHighlitedText(this.state.biomassArea, 'ha')}</Text>

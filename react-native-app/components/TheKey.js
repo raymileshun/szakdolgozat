@@ -169,6 +169,7 @@ class TheKey extends Component {
     }
 
     async componentDidMount() {
+        if(this.props.personalConsumptionData.foodConsumptions.Beef!==undefined){
         await fetchHardwareJson(this.props.ipAddress, 'foodpollutions')
             .then(response => this.setState({ foodPollutions: response }))
         this.determineRenderableMessages()
@@ -180,8 +181,9 @@ class TheKey extends Component {
         this.calculateTotalSaveablePollution()
 
         this.populatePieChartData()
-
+       
         this.setState({ allDataLoaded: true })
+        }
 
     }
 
